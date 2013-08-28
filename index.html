@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Nod redux</title>
+    <link href="lib/bootstrap-combined.min.css" rel="stylesheet">
+    <script src="lib/jquery.js"></script>
+    <script src="lib/bootstrap.min.js"></script>
+    <script src="lib/cherries.js"></script>
+    <!--
+    <script src="nod.js"></script>
+    -->
+    <script src="src/checker.js"></script>
+    <script src="src/msg.js"></script>
+    <script src="src/listener.js"></script>
+    <script src="src/nod.js"></script>
+  </head>
+  <body>
+    <hr>
+    <form action="" class="form-horizontal" id="form">
+
+      <!--
+      <div class="control-group">
+        <div class="controls">
+          <label class="checkbox">
+            <input type="checkbox" id="hello"> Remember me
+          </label>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Home</label>
+        <div class="controls">
+          <input type="text" id="ex4a_home">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">Work</label>
+        <div class="controls">
+          <input type="text" id="ex4a_work">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label">Mobile</label>
+        <div class="controls">
+          <input type="text" id="ex4a_mobile">
+        </div>
+      </div>
+      -->
+
+      <div class="control-group">
+        <label class="control-label">Hello world</label>
+        <div class="controls">
+          <input type="text" id="hello">
+        </div>
+      </div>
+
+      <!--
+      <div class="control-group">
+        <label class="control-label">Hello world</label>
+        <div class="controls">
+          <input type="text" class="cls">
+        </div>
+      </div>
+      -->
+
+      <div class="control-group">
+        <label class="control-label">Hello world</label>
+        <div class="controls">
+          <div class="input-append">
+            <input type="text" class="cls2">
+            <span class="add-on">$</span>
+          </div>
+          <span class="help-inline">Must be empty</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="submitBtn" class="btn btn-primary" type="submit">Go</button>
+      </div>
+
+    </form>
+
+
+    <script>
+      var fn = function(v) { return v%2 === 0 };
+      var resp = function (val) { return $.get('resp.php', {data:val}) };
+      var resp2 = $.get('resp.php');
+      var metrics = [
+        [ '#hello', 'presence', 'Bad boy!' ],
+        // [ '#ex4a_home, #ex4a_work, #ex4a_mobile', 'one-of', 'Add at least one number' ],
+        // [ '.cls', 'empty', 'Needed yo!' ],
+        // [ '.cls2', 'empty', 'yo!' ],
+        [ '.cls2', 'same-as:#hello', 'length!' ],
+        // [ '#hello', 'email', 'diivdfkje' ]
+      ];
+      var options = {
+        form      : "#form",
+        submitBtn : "#submitBtn",
+        delay: 200
+      }
+      var nn = nod( metrics, options );
+    </script>
+
+
+  </body>
+</html>
