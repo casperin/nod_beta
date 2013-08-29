@@ -13,14 +13,15 @@
         'submitBtn': '',
         'delay': 700,
         'helpSpanDisplay': 'help-inline',
-        'groupClass': 'error',
+        'errorClass': 'error',
         'errorPosClasses': [ '.help-inline'
                            , '.add-on'
                            , 'button'
                            , '.input-append' ],
         //'silentSubmit': false,      // These do nothing at the moment
         //'broadcastError': false,
-        'errorClass': 'nodMsg',
+        'nodClass': 'nodMsg',
+        'successClass': '',
         'groupSelector': '.control-group'
       };
 
@@ -30,7 +31,7 @@
   // returns an array of [ $el, metric ]
   function getListenerArgs (metrics, options) {
     return foldl(function (memo, field) {
-      $(field[0]).each(function(){
+      $(field.selector).each(function(){
         memo.push( [$(this), field, options] );
       });
       return memo;
@@ -40,8 +41,15 @@
 
   function toggleGroupClass (event, el) {
     var group = getGroup(el);
-    groupHasErrors(group) ? group.addClass(options.groupClass)
-                          : group.removeClass(options.groupClass)
+    if (groupHasErrors(group)) {
+      group
+        .addClass(options.errorClass)
+        .removeClass(options.successClass)
+    } else {
+      group
+        .removeClass(options.errorClass)
+        .addClass(options.successClass)
+    }
   }
 
 
@@ -61,12 +69,12 @@
 
 
   function groupHasErrors (group) {
-    return !! group.find('.' + options.errorClass).length
+    return !! group.find('.' + options.nodClass).length
   }
 
 
   function get$Els (metrics) {
-    return $( unique( map( dot(0), metrics ) ) );
+    return $( unique( map( dot('selector'), metrics ) ) );
   }
 
 

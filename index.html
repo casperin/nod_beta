@@ -85,7 +85,12 @@
     <script>
       var fn = function(v) { return v%2 === 0 };
       var resp = function (val) { return $.get('resp.php', {data:val}) };
-      var resp2 = $.get('resp.php');
+
+      var metrics = [
+        { selector: '#hello', validate: 'presence', errorText: 'boo!' }
+      ];
+
+      /*
       var metrics = [
         [ '#hello', 'presence', 'Bad boy!' ],
         // [ '#ex4a_home, #ex4a_work, #ex4a_mobile', 'one-of', 'Add at least one number' ],
@@ -94,9 +99,11 @@
         [ '.cls2', 'same-as:#hello', 'length!' ],
         // [ '#hello', 'email', 'diivdfkje' ]
       ];
+      */
       var options = {
         form      : "#form",
         submitBtn : "#submitBtn",
+        successClass: "success",
         delay: 200
       }
       var nn = nod( metrics, options );

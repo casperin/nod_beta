@@ -31,7 +31,7 @@ function findPosition (posClass, $el) {
 function makeShowMsg (posClass, $el) {
   var type = $el.attr('type');
   if (type === 'checkbox' || type === 'radio') {
-    return function(msg) {
+    return function (msg) {
       $el.parent().append(msg);
     }
   } else {
@@ -43,12 +43,12 @@ function makeShowMsg (posClass, $el) {
 }
 
 
-function msg ($el, msg, options) {
+function msg ($el, metrics, options) {
 
-  var msgClass = options.helpSpanDisplay + " " + options.errorClass,
-      posClass = options.errorPosClasses,
-      $msg = make$Msg(msg, msgClass),
-      showMsg = makeShowMsg(posClass, $el);
+  var msgClass    = options.helpSpanDisplay + " " + options.nodClass,
+      posClass    = options.errorPosClasses,
+      $msg        = make$Msg(metrics.errorText, msgClass),
+      showMsg     = makeShowMsg(posClass, $el);
 
 
   function toggle (status) { status ? $msg.remove()     // hide msg

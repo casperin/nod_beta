@@ -3,18 +3,19 @@
 
 
 /*
-  args in an array that looks like
-  [ $el, ['#foo', 'presence', 'error messae'], options ]
+  args is an array that looks like
+  [ $el, { selector: '#foo', validate: 'presence', errorText: 'bar' }, options ]
 */
 function listener (args) {
 
   var status      = null,             // Flag, but only used in `changeStatus`
       $el         = args[0],
+      metrics     = args[1],
       options     = args[2],
-      type        = args[1][1],
-      check       = makeChecker(type),
-      msg         = makeMsg($el, args[1][2], options),
-      getVal      = makeGetVal($el, args[1]),
+      validate    = metrics.validate,
+      check       = makeChecker(validate),
+      msg         = makeMsg($el, metrics, options),
+      getVal      = makeGetVal($el, metrics),
       delayId     = "",               // So we're able to cancel delayed checks
       l           = {};               // The return value for `listener`
 
@@ -22,8 +23,8 @@ function listener (args) {
   // Events
   $el.on('keyup', delayedCheck);
   $el.on('blur change nodCheck', checkValue);
-  sameAsEvent(type, delayedCheck);
-  oneOfEvent(type, checkValue);
+  sameAsEvent(validate, delayedCheck);
+  oneOfEvent(validate, checkValue);
 
 
   // Calls `checkValue`
@@ -55,7 +56,7 @@ function listener (args) {
 
     msg( status );
     $(l).trigger('nodToggle', $el);
-    if (type === 'one-of' && status) {
+    if (validate === 'one-of' && status) {
       $(window).trigger('nod-run-one-of');
     }
 
@@ -109,8 +110,8 @@ function sameAsEvent (m, fn) {
     $(m[1]).on('keyup', fn)
 }
 
-function oneOfEvent (type, fn) {
-  if (type === 'one-of')
+function oneOfEvent (validate, fn) {
+  if (validate === 'one-of')
     $(window).on('nod-run-one-of', fn);
 }
 
