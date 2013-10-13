@@ -9,11 +9,15 @@
     <script src="lib/cherries.js"></script>
     <!--
     <script src="nod.js"></script>
-    -->
     <script src="src/checker.js"></script>
     <script src="src/msg.js"></script>
-    <script src="src/listener.js"></script>
     <script src="src/nod.js"></script>
+    -->
+    <script src="src2/checker.js"></script>
+    <script src="src2/msg.js"></script>
+    <script src="src2/listener.js"></script>
+
+    <script src="src2/nod.js"></script>
   </head>
   <body>
     <hr>
@@ -71,7 +75,7 @@
             <input type="text" class="cls2">
             <span class="add-on">$</span>
           </div>
-          <span class="help-inline">Must be empty</span>
+          <span class="help-inline">help text</span>
         </div>
       </div>
 
@@ -86,27 +90,27 @@
       var fn = function(v) { return v%2 === 0 };
       var resp = function (val) { return $.get('resp.php', {data:val}) };
 
-      var metrics = [
-        { selector: '#hello', validate: 'presence', errorText: 'boo!' }
-      ];
-
-      /*
-      var metrics = [
-        [ '#hello', 'presence', 'Bad boy!' ],
-        // [ '#ex4a_home, #ex4a_work, #ex4a_mobile', 'one-of', 'Add at least one number' ],
-        // [ '.cls', 'empty', 'Needed yo!' ],
-        // [ '.cls2', 'empty', 'yo!' ],
-        [ '.cls2', 'same-as:#hello', 'length!' ],
-        // [ '#hello', 'email', 'diivdfkje' ]
-      ];
-      */
-      var options = {
-        form      : "#form",
-        submitBtn : "#submitBtn",
-        successClass: "success",
-        delay: 200
-      }
-      var nn = nod( metrics, options );
+        var nn = nod([
+          {
+            selector: '#hello', 
+            validate: 'min-length:2',
+            validText: 'yay',
+            errorText: 'boo!' 
+          },
+          {
+            selector: '.cls2',
+            validate: 'integer',
+            validText: 'intet!',
+            errorText: 'must be int'
+          }
+        ],
+        {
+          form      : "#form",
+          submitBtn : "#submitBtn",
+          successClass: "success",
+          delay: 200
+        }
+      )
     </script>
 
 

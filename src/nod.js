@@ -1,7 +1,5 @@
-// Functions used from cherries.js: map dot each foldl extend (to be included
-// manually later
 "use strict";
-(function(){
+(function(global){
 
   // Once created (when nod() is called), these should be consdered immutable
   var metrics,
@@ -9,55 +7,44 @@
       $els,
       listeners,
       defaultOptions = {
-        'form': '',
-        'submitBtn': '',
-        'delay': 700,
-        'helpSpanDisplay': 'help-inline',
-        'errorClass': 'error',
-        'errorPosClasses': [ '.help-inline'
-                           , '.add-on'
-                           , 'button'
-                           , '.input-append' ],
-        //'silentSubmit': false,      // These do nothing at the moment
-        //'broadcastError': false,
-        'nodClass': 'nodMsg',
-        'successClass': '',
-        'groupSelector': '.control-group'
+        'form'              : null,
+        'submitBtn'         : null,
+        'delay'             : 700,
+        'helpSpanDisplay'   : 'help-inline',
+        'errorClass'        : 'error',
+        'errorPosClasses'   : [ '.help-inline'
+                              , '.add-on'
+                              , 'button'
+                              , '.input-append' ],
+        'silentSubmit'      : false,
+        'broadcastError'    : false,
+        'nodClass'          : 'nodMsg',
+        'successClass'      : '',
+        'groupSelector'     : '.control-group'
       };
 
 
+  // This fn prepares everything to create a listener.
+  // Returns a list of objects. The length of the list
+  // determines the number of listeners
+  var getListenerArgs = foldl(function (result, metric) {
+    $(metric.selector).each(function(){
+      result.push({ $el     : $(this)
+                  , metric  : metric
+                  , options : options });
+    });
+    return result;
+  }, []);
 
-  // args: all the metrics passed in by the user
-  // returns an array of [ $el, metric ]
-  function getListenerArgs (metrics, options) {
-    return foldl(function (memo, field) {
-      $(field.selector).each(function(){
-        memo.push( [$(this), field, options] );
-      });
-      return memo;
-    }, [], metrics);
-  }
 
-
-  function toggleGroupClass (event, el) {
-    var group = getGroup(el);
-    if (groupHasErrors(group)) {
-      group
-        .addClass(options.errorClass)
-        .removeClass(options.successClass)
-    } else {
-      group
-        .removeClass(options.errorClass)
-        .addClass(options.successClass)
-    }
-  }
+  var get$Els = compose($, unique, map(dot('selector')));
 
 
   function elsHaveErrors (els) {
     var els = els ? $(els) : $els,
         err = false;
     els.each(function () {
-      if (groupHasErrors(getGroup(this))) err = true
+      if (elHasErrors(this)) err = true
     });
     return err;
   }
@@ -69,14 +56,11 @@
 
 
   function groupHasErrors (group) {
-    return !! group.find('.' + options.nodClass).length
+    return !empty(group.find('.' + options.nodClass))
   }
 
 
-  function get$Els (metrics) {
-    return $( unique( map( dot('selector'), metrics ) ) );
-  }
-
+  var elHasErrors = compose(groupHasErrors, getGroup);
 
 
   var toggleSubmit;
@@ -95,66 +79,40 @@
     }
   }
 
-  // if clear === 'clear' then all errors will get cleared
-  function runMassTriggerOfCheck (clear) {
-    $els.each(function () {
-      $(this).trigger('nodCheck', clear);
-    });
+
+  function toggleGroupClass (event, el) {
+    var group   = getGroup(el),
+        hasErr  = groupHasErrors(group);
+    group.toggleClass(options.errorClass,    hasErr)
+         .toggleClass(options.successClass, !hasErr)
   }
 
-  
-  var formSubmitEvents;
-  function makeFormSubmitEvents (form) {
-    if (!form) return;
 
-    var $form = $(form);
-
-    $form.on('submit', submitForm);
-
-    function submitForm (event) {
-      runMassTriggerOfCheck();
-
-      if (elsHaveErrors()) {
-        event.preventDefault();
-      }
+  function attachEvents (ev, fns) {
+    return function(el) {
+      each(function(fn){ $(el).on(ev, fn) }, fns)
     }
-
   }
 
 
-  // main function called by the user
+   // main function called by the user
   function nod (met, opt) {
-    if (!met || met.length === 0) return;
+    if (!met || empty(met)) return;
 
-    metrics           = met || [];
+    metrics           = met;
     options           = extend(defaultOptions, (opt || {}));
     $els              = get$Els(metrics);
-    listeners         = map(listener, getListenerArgs(metrics, options));
-
+    listeners         = map(makeListener, getListenerArgs(metrics));
     toggleSubmit      = makeToggleSubmit(options.submitBtn);
-    formSubmitEvents  = makeFormSubmitEvents(options.form);
 
-
-    function listenerEvents (listener) {
-      $(listener).on('nodToggle', toggleGroupClass);
-      $(listener).on('nodToggle', toggleSubmit);
-    }
-
-    each(listenerEvents, listeners);
-
-
-
-
-
+    each( attachEvents('nodToggle', [toggleSubmit, toggleGroupClass])
+        , listeners );
 
     return {
-      runMassTriggerOfCheck : runMassTriggerOfCheck,
-      toggleSubmit  : toggleSubmit,
-      elsHaveErrors : elsHaveErrors
+      toggleSubmit  : toggleSubmit
     }
-  }
+  };
 
 
-
-  window.nod = nod;
-})();
+  global.nod = nod;
+})(this);

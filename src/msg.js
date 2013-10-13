@@ -2,10 +2,10 @@
 (function(){
 
 
-function make$Msg (msg, cls) {
-  return $('<span/>',{
-    'html'  : msg,
-    'class' : cls
+function make$Msg (text, opt) {
+  return $('<span/>', {
+    'html'  : text,
+    'class' : opt.helpSpanDisplay + " " + opt.nodClass
   });
 }
 
@@ -43,16 +43,25 @@ function makeShowMsg (posClass, $el) {
 }
 
 
-function msg ($el, metrics, options) {
+function makeShowValidText () {
+  return function () {
+    console.log(1);
+  }
+}
 
-  var msgClass    = options.helpSpanDisplay + " " + options.nodClass,
-      posClass    = options.errorPosClasses,
-      $msg        = make$Msg(metrics.errorText, msgClass),
-      showMsg     = makeShowMsg(posClass, $el);
+
+function msg ($el, metrics, opt) {
+
+  var posClass    = opt.errorPosClasses,
+      $msg        = make$Msg(metrics.errorText, opt),
+      showMsg     = makeShowMsg(posClass, $el),
+      showValidText = makeShowValidText();
+
+  $el.showValidText = showValidText;
 
 
-  function toggle (status) { status ? $msg.remove()     // hide msg
-                                    : showMsg($msg)     // show msg
+  function toggle (status) { status ? $msg.remove()
+                                    : showMsg($msg)
   }
 
   return toggle;

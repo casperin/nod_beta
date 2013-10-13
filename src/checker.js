@@ -3,7 +3,6 @@
 
   function checker (m) {
 
-
     // User defined function for checking the validity of the input
     if (!!(m && m.constructor && m.call && m.apply)) {
       return m;

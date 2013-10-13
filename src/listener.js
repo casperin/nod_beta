@@ -2,20 +2,15 @@
 (function(){
 
 
-/*
-  args is an array that looks like
-  [ $el, { selector: '#foo', validate: 'presence', errorText: 'bar' }, options ]
-*/
+// args is an object containing the element, the metric and the options
 function listener (args) {
 
   var status      = null,             // Flag, but only used in `changeStatus`
-      $el         = args[0],
-      metrics     = args[1],
-      options     = args[2],
-      validate    = metrics.validate,
+      $el         = args.$el,
+      validate    = args.metric.validate,
       check       = makeChecker(validate),
-      msg         = makeMsg($el, metrics, options),
-      getVal      = makeGetVal($el, metrics),
+      msg         = makeMsg($el, args.metric, args.options),
+      getVal      = makeGetVal($el, args.metric),
       delayId     = "",               // So we're able to cancel delayed checks
       l           = {};               // The return value for `listener`
 
@@ -30,7 +25,7 @@ function listener (args) {
   // Calls `checkValue`
   function delayedCheck () {
     clearTimeout(delayId);
-    delayId = setTimeout(checkValue, options.delay);
+    delayId = setTimeout(checkValue, args.options.delay);
   }
 
 
@@ -55,6 +50,7 @@ function listener (args) {
     status = isCorrect;
 
     msg( status );
+    console.log($el);
     $(l).trigger('nodToggle', $el);
     if (validate === 'one-of' && status) {
       $(window).trigger('nod-run-one-of');
@@ -77,7 +73,7 @@ function makeGetVal ($el, metric) {
     return function () {
       return $el.is(':checked');
     }
-    
+
     case 'radio':
     var name = $el.attr('name');
     return function () {
@@ -117,5 +113,5 @@ function oneOfEvent (validate, fn) {
 
 
 
-window.listener = listener;
+window.makeListener = listener;
 })();
