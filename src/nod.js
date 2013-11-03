@@ -80,11 +80,14 @@
   }
 
 
-  function toggleGroupClass (event, el) {
-    var group   = getGroup(el),
+  function toggleGroupClass (event, args) {
+    var el      = args[0],
+        valid   = args[1],
+        group   = getGroup(el),
         hasErr  = groupHasErrors(group);
     group.toggleClass(options.errorClass,    hasErr)
-         .toggleClass(options.successClass, !hasErr)
+         .toggleClass(options.successClass, !hasErr);
+    if (!hasErr) args.showValidText();
   }
 
 
@@ -100,7 +103,7 @@
     if (!met || empty(met)) return;
 
     metrics           = met;
-    options           = extend(defaultOptions, (opt || {}));
+    options           = extend(defaultOptions, opt);
     $els              = get$Els(metrics);
     listeners         = map(makeListener, getListenerArgs(metrics));
     toggleSubmit      = makeToggleSubmit(options.submitBtn);

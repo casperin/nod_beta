@@ -12,7 +12,7 @@ function listener (args) {
       msg         = makeMsg($el, args.metric, args.options),
       getVal      = makeGetVal($el, args.metric),
       delayId     = "",               // So we're able to cancel delayed checks
-      l           = {};               // The return value for `listener`
+      l           = {$el:$el};        // The return value for `listener`
 
 
   // Events
@@ -50,16 +50,13 @@ function listener (args) {
     status = isCorrect;
 
     msg( status );
-    console.log($el);
-    $(l).trigger('nodToggle', $el);
+    $(l).trigger('nodToggle', [$el, $el.showValidText]);
     if (validate === 'one-of' && status) {
       $(window).trigger('nod-run-one-of');
     }
 
   }
 
-
-  l.$el = $el;
   return l;
 
 }

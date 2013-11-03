@@ -1,11 +1,33 @@
 "use strict";
 (function(){
 
+// TODO: Show valid text
 
-function make$Msg (text, opt) {
+// Main function that is returned
+function msg ($el, metrics, opt) {
+
+  var posClass    = opt.errorPosClasses,
+      $msg        = make$Msg(metrics.errorText, opt.helpSpanDisplay, opt.nodClass),
+      showMsg     = makeShowMsg(posClass, $el),
+      showValidText = makeShowValidText(opt);
+
+  $el.showValidText = showValidText;
+
+
+  function toggle (status) { status ? $msg.remove()
+                                    : showMsg($msg)
+  }
+
+  return toggle;
+
+}
+
+
+
+function make$Msg (text, display, cls) {
   return $('<span/>', {
     'html'  : text,
-    'class' : opt.helpSpanDisplay + " " + opt.nodClass
+    'class' : display + " " + cls
   });
 }
 
@@ -43,30 +65,12 @@ function makeShowMsg (posClass, $el) {
 }
 
 
-function makeShowValidText () {
-  return function () {
-    console.log(1);
-  }
+function makeShowValidText (opt) {
+    return function () {
+        console.log(opt);
+    }
 }
 
-
-function msg ($el, metrics, opt) {
-
-  var posClass    = opt.errorPosClasses,
-      $msg        = make$Msg(metrics.errorText, opt),
-      showMsg     = makeShowMsg(posClass, $el),
-      showValidText = makeShowValidText();
-
-  $el.showValidText = showValidText;
-
-
-  function toggle (status) { status ? $msg.remove()
-                                    : showMsg($msg)
-  }
-
-  return toggle;
-
-}
 
 window.makeMsg = msg;
 })();
