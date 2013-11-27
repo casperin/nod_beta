@@ -30,18 +30,6 @@ var checkers = {
         };
     },
 
-    'one-of' : function () {
-        return function (value) {
-            return !!value;
-        };
-    },
-
-    'all-or-none' : function () {
-        return function (value) {
-            return !!value;
-        };
-    },
-
     'empty' : function () {
         return function (value) {
             return value.length === 0 || !!(void 0);
@@ -132,4 +120,8 @@ var checkers = {
             return RFC822.test(value);
         };
     }
-}
+};
+
+// These checkers share their checking functions
+checkers["one-of"] = checkers["presence"];
+checkers["all-or-none"] = checkers["presence"];
