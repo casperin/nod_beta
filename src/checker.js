@@ -108,6 +108,11 @@ var checkers = {
 checkers["one-of"] = checkers["presence"];
 checkers["all-or-none"] = checkers["presence"];
 
+// Backwards compatability
+checkers["min-length"] = checkers["min-num"] = checkers["min"];
+checkers["max-length"] = checkers["max-num"] = checkers["max"];
+checkers["between-length"] = checkers["between-num"] = checkers["between"];
+
 var regexps = {
     "int" : /^\s*\d+\s*$/,
     "float" : /^\s*[-+]?[0-9]+(\.[0-9]+)\s*?$/,
