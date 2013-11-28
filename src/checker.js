@@ -20,7 +20,7 @@ function Checker (m) {
         throw new Error("I don't know how to check for: " + type);
     }
 
-    return checker.apply(nod, args);
+    return checker.apply(this, args);
 }
 
 var checkers = {
@@ -58,15 +58,24 @@ var checkers = {
         };
     },
 
-    'min-length': function (length) {
+    'min': function (min) {
         return function (value) {
-            return value.length >= +length;
+            var parsedVal = isNaN(value) ? value.length : +value;
+            return parsedVal >= +min;
         };
     },
 
-    'max-length': function (length) {
+    'max': function (max) {
         return function (value) {
-            return value.length <= +length;
+            var parsedVal = isNaN(value) ? value.length : +value;
+            return parsedVal <= +max;
+        };
+    },
+
+    'between': function (min, max) {
+        return function (value) {
+            var parsedVal = isNaN(value) ? value.length : +value;
+            return parsedVal >= +min && parsedVal <= +max;
         };
     },
 
@@ -76,48 +85,21 @@ var checkers = {
         };
     },
 
-    'between': function (min, max) {
-        return function (value) {
-            return value.length >= +min && value.length <= +max;
-        };
-    },
-
     'integer': function () {
         return function (value) {
-            return (/^\s*\d+\s*$/).test(value);
-        };
-    },
-
-    'min-num': function (min) {
-        return function (value) {
-            return +value >= +min;
-        };
-    },
-
-    'max-num': function (max) {
-        return function (value) {
-            return +value <= +max;
-        };
-    },
-
-    'between-num': function (min, max) {
-        return function (value) {
-            return +value >= +min && +value <= +max;
+            return regexps["int"].test(value);
         };
     },
 
     'float': function () {
         return function (value) {
-            return (/^[-+]?[0-9]+(\.[0-9]+)?$/).test(value);
+            return regexps["float"].test(value);
         };
     },
 
     'email': function () {
         return function (value) {
-            // TODO: this really shouldn't be created every time this check is
-            // made.
-            var RFC822 = (/^([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*$/);
-            return RFC822.test(value);
+            return regexps["email"].test(value);
         };
     }
 };
@@ -125,3 +107,10 @@ var checkers = {
 // These checkers share their checking functions
 checkers["one-of"] = checkers["presence"];
 checkers["all-or-none"] = checkers["presence"];
+
+var regexps = {
+    "int" : /^\s*\d+\s*$/,
+    "float" : /^\s*[-+]?[0-9]+(\.[0-9]+)\s*?$/,
+    // email regexp follows RFC822
+    "email" : /^([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*$/
+}
