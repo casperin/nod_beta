@@ -1,8 +1,11 @@
 var src = [
+    // 'src/cherries.js',  // Pick the ones you need over into generalFunctions.js
+    'src/generalFunctions.js',
+    'src/config.js',
+    'src/Checker.js',
     'src/listener.js',
-    'src/msg.js',
-    'src/checker.js',
-    'src/nod.js'
+    'src/Elems.js',
+    'src/main.js'
 ];
 
 module.exports = function(grunt) {
@@ -56,7 +59,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-plato');
 
     // Default task(s).
-    //grunt.registerTask('default', ['concat', 'plato', 'uglify']);
+    grunt.registerTask('default', ['concat', 'plato', 'uglify']);
     grunt.registerTask('default', ['watch']);
 
 };

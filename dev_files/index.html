@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>For quick n dirt tests</title>
+    <!-- jquery -->
+    <script src="../node_modules/jquery/dist/jquery.js"></script>
+    <!-- bootstrap -->
+    <link rel="stylesheet" href="../node_modules/twitter-bootstrap-3.0.0/dist/css/bootstrap.css">
+    <script src="../node_modules/twitter-bootstrap-3.0.0/dist/js/bootstrap.js"></script>
+    <!-- nod -->
+    <script src="../build/nod.js"></script>
+
+    <style>
+        .nodText {
+            padding: 2px 10px;
+            border-radius: 7px;
+        }
+        .has-success .nodText {
+            background: #dff0d8;
+        }
+        .has-error .nodText {
+            background: #f2dede;
+        }
+
+        </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Qick n dirty nod tests</h1>
+        <form class="form-horizontal" action="">
+            <div class="form-group">
+                <label for="inputEmail3" class="col-sm-2 control-label">Email</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control one all" id="inputEmail3" placeholder="Email">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputPassword3" class="col-sm-2 control-label">Password</label>
+                <div class="col-sm-3">
+                    <input type="text" class="form-control two all" id="inputPassword3" placeholder="Password">
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" class="btn btn-primary">Sign in</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        var metrics = [
+            {
+                selector: ".one",
+                validate: "integer",
+                validText: "YES INTEGER",
+                errorText: "NO INTEGER"
+            }
+            ,
+            {
+                selector: ".all",
+                validate: "min-length:2",
+                validText: "YES MIN:2",
+                errorText: "NO MIN:2"
+            }
+        ];
+
+        var n = nod(metrics);
+    </script>
+    
+</body>
+</html>

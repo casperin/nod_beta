@@ -1,185 +1,141 @@
 ;(function(window, undefined){
-'use strict';// args is an object containing the element, the metric and the options
-function newListener (args) {
+'use strict';function log () {
+    console.log(arguments);
+    return (arguments[0]);
+}
 
-    var status      = null,             // Flag, but only used in `changeStatus`
-        $el         = args.$el,
-        validate    = args.metric.validate,
-        check       = new Checker(validate),
-        msg         = new Msg($el, args.metric, args.options),
-        getVal      = new GetVal($el, args.metric),
-        delayId     = "",               // So we're able to cancel delayed checks
-        l           = {$el:$el};        // The return value for `listener`
+var invoke = autoCurry(function (method, obj) {
+        return obj[method]();
+    }),
 
+    pluck = autoCurry(function (prop, arr) {
+        var result = [], i = -1;
+        while (++i < arr.length) {
+            if (arr[i][prop])
+                result.push(arr[i][prop]);
+        }
+        return result;
+    }),
 
-    // Events
-    $el.on('keyup', delayedCheck);
-    $el.on('blur change nodCheck', checkValue);
-    sameAsEvent(validate, delayedCheck);
-    oneOfEvent(validate, checkValue);
+    intersection = autoCurry(function (arr, arr2) {
+        var result = [], i = -1;
+        while (++i < arr.length) {
+            if (arr2.indexOf(arr[i]) !== -1)
+                result.push(arr[i]);
+        }
+        return result;
+    }),
 
-
-    // Calls `checkValue`
-    function delayedCheck () {
-        clearTimeout(delayId);
-        delayId = setTimeout(checkValue, args.options.delay);
-    }
-
-
-    // Calls `check` then `changeStatus`
-    function checkValue (event, clear) {
-        if (clear === 'clear') {
-            changeStatus(true);
+    each = autoCurry(function (fn, items) {
+        if (items.forEach) return items.forEach(fn);
+        if (items.length === +items.length) {
+          var i = -1;
+          while (++i < items.length)
+            fn(items[i]);
         } else {
-            $.when(check(getVal()))
-                .done(changeStatus);
+          for (var key in items)
+            items.hasOwnProperty(key) && fn(items[key]);
         }
-    }
+        return items;
+    }),
 
-
-    // Triggers global event(s) and shows/hides msg
-    function changeStatus (isCorrect) {
-
-        try { isCorrect = eval(isCorrect); } catch (e) {}
-        isCorrect = !!isCorrect;
-
-        if (status === isCorrect) return;
-        status = isCorrect;
-
-        msg( status );
-        $(l).trigger('nodToggle', [$el, $el.showValidText]);
-        if (validate === 'one-of' && status) {
-            $(window).trigger('nod-run-one-of');
+    map = autoCurry(function (fn, items) {
+        if (items.map) return items.map(fn);
+        if (items.length === +items.length) {
+          var result = [], i = -1;
+          while (++i < items.length)
+            result.push(fn(items[i]));
+          return result;
+        } else {
+          var result = {};
+          for (var key in items_)
+            if (items.hasOwnProperty(k)) result[key] = fn(items[key]);
+          return result;
         }
+    }),
 
-    }
+    all = autoCurry(function (fn, arr) {
+        var i = -1;
+        while (++i < arr.length)
+          if (!fn(arr[i])) return false;
+        return true;
+    }),
 
-    return l;
+    eq = autoCurry(function (x, y) {
+        return y === x;
+    }),
 
-}
+    neq = autoCurry(function (x, y) {
+        return y !== x;
+    }),
 
+    filter = autoCurry(function (fn, items) {
+        if (items.filter) return items.filter(fn);
+        if (items.length === +items.length) {
+          var result = [], i = -1;
+          while (++i < items.length)
+            fn(items[i]) && result.push(items[i]);
+          return result;
+        } else {
+          var result = {};
+          for (var key in items) {
+            if (items.hasOwnProperty(key) && fn(items[key]))
+              result[key] = items[key];
+          }
+          return result;
+        }
+    }),
 
-function GetVal ($el, metric) {
-
-    switch ($el.attr('type')) {   // type of el
-
-        case 'checkbox':
-            return function () {
-                return $el.is(':checked');
-            };
-
-        case 'radio':
-            var name = $el.attr('name');
-            return function () {
-                return $('[name="'+name+'"]').filter(':checked').val();
-            };
-
-        default:
-            if (metric[1] !== 'one-of') {
-                return function () {
-                    return $.trim($el.val());
-                };
-            } else {
-                var inputs = $(metric[0]);
-                return function () {
-                    return inputs
-                        .map(function () { return $.trim(this.value); })
-                        .get()
-                        .join('');
-                };
-            }
-
-    }
-}
-
-
-function sameAsEvent (m, fn) {
-    if (!!(m && m.constructor && m.call && m.apply)) return;
-        m = m.split(':');     // e.g., m = "same-as:#foo"
-    if (m[0] === 'same-as')
-        $(m[1]).on('keyup', fn);
-}
-
-function oneOfEvent (validate, fn) {
-    if (validate === 'one-of')
-        $(window).on('nod-run-one-of', fn);
-}
-
-
-
-// TODO: Show valid text
-
-// Main function that is returned
-function Msg ($el, metrics, opt) {
-
-    var posClass        = opt.errorPosClasses,
-        $msg            = new $Msg(metrics.errorText, opt.helpSpanDisplay, opt.nodClass),
-        showMsg         = new ShowMsg(posClass, $el),
-        showValidText   = newShowValidText(opt);
-
-    $el.showValidText   = showValidText;
-
-
-    function toggle (status) {
-        if (status)
-            $msg.remove();
-        else
-            showMsg($msg);
-    }
-
-    return toggle;
-
-}
-
-
-
-function $Msg (text, display, cls) {
-    return $('<span/>', {
-        'html'  : text,
-           'class' : display + " " + cls
+    dot = autoCurry(function (prop, obj) {
+        return obj[prop];
     });
-}
 
-
-function elHasClass (posClass, dir, $el) {
-    var hasCls = false;
-    each(function (sel) {
-        if ($el[dir](sel).length) hasCls = true;
-    }, posClass);
-    return hasCls;
-}
-
-
-function findPosition (posClass, $el) {
-    if (elHasClass(posClass, 'parent', $el))
-        return findPosition(posClass, $el.parent());
-    if (elHasClass(posClass, 'next',   $el))
-        return findPosition(posClass, $el.next());
-    return $el;
-}
-
-
-function ShowMsg (posClass, $el) {
-    var type = $el.attr('type');
-    if (type === 'checkbox' || type === 'radio') {
-        return function (msg) {
-            $el.parent().append(msg);
-        };
-    } else {
-        var pos = findPosition(posClass, $el);
-        return function (msg) {
-            pos.after(msg);
-        };
-    }
-}
-
-
-function newShowValidText (opt) {
-    return function () {
-        console.log(opt);
+function compose() {
+    var fns = arguments;
+    return function() {
+        var args = arguments, i = fns.length;
+        while (i--) {
+            args = [fns[i].apply(this, args)];
+        }
+        return args[0];
     };
 }
 
+function head(arr){ return arr[0]; }
+
+
+function curry(fn) {
+  var toArray = function(arr, from) {
+    return Array.prototype.slice.call(arr, from || 0);
+  },
+  args = toArray(arguments, 1);
+  return function() {
+    return fn.apply(this, args.concat(toArray(arguments)));
+  };
+}
+
+
+function autoCurry(fn, numArgs) {
+  var toArray = function(arr, from) {
+    return Array.prototype.slice.call(arr, from || 0);
+  },
+  numArgs = numArgs || fn.length;
+  return function() {
+    var rem;
+    if (arguments.length < numArgs) {
+      rem = numArgs - arguments.length;
+      if (numArgs - rem > 0) {
+        return autoCurry(curry.apply(this, [fn].concat(toArray(arguments))), rem);
+      } else {
+        return curry.apply(this, [fn].concat(toArray(arguments)));
+      }
+    } else {
+      return fn.apply(this, arguments);
+    }
+  };
+}
+
+var elems = [];      // List of all elements
 
 function Checker (m) {
 
@@ -293,125 +249,104 @@ function Checker (m) {
 }
 
 
-// Once created (when nod() is called), these should be consdered immutable
-var metrics,
-    options,
-    $els,
-    listeners,
-    defaultOptions = {
-        'form'              : null,
-        'submitBtn'         : null,
-        'delay'             : 700,
-        'helpSpanDisplay'   : 'help-inline',
-        'errorClass'        : 'error',
-        'errorPosClasses'   : [
-            '.help-inline',
-            '.add-on',
-            'button',
-            '.input-append'
-        ],
-        'silentSubmit'      : false,
-        'broadcastError'    : false,
-        'nodClass'          : 'nodMsg',
-        'successClass'      : '',
-        'groupSelector'     : '.control-group'
-    };
+//+ fnOf :: a -> fn -> b
+var fnOf = autoCurry(function (x, fn) { return fn(x); });
 
 
-// This fn prepares everything to create a listener.
-// Returns a list of objects. The length of the list
-// determines the number of listeners
-var getListenerArgs = foldl(function (result, metric) {
-    $(metric.selector).each(function(){
-        result.push({
-            $el     : $(this),
-            metric  : metric,
-            options : options
+//+ runCheck :: item -> event -> dom side effects
+function runCheck (item) {
+    return function (ev) {
+        var results = map(fnOf(ev.target.value), item.checks),
+            isValid = all(eq(true), results),
+            nodText = head(filter(neq(true), results)) || item.validText;
+
+        item.textHolder.html(nodText).fadeIn();
+        item.group
+            .toggleClass("has-success", isValid)
+            .toggleClass("has-error", !isValid);
+    }
+}
+
+function attachListener (item) {
+    $(item.el).on('keyup', runCheck(item));
+}
+
+
+
+function Elems (selectors) {
+    var items = [],
+        initItemsFromSelectors = compose(each(initItem), $, invoke('join'));
+
+    function initItem (elem) {
+        items.push({
+            el: elem,
+            checks: [],
+            validText: '',
+            textHolder: null,
+            group: null
         });
-    });
-    return result;
-}, []);
+    }
+
+    function attach (metrics, item) {
+        // Checker
+        item.checks.push(function (value) {
+            return metrics.check(value) ? true : metrics.errorText;
+        });
+
+        // Valid text
+        item.validText = metrics.validText;
+
+        // Text holder
+        var textHolder = $("<span/>", {'class':'help-block nodText'}).hide();
+        $(item.el).after(textHolder);
+        item.textHolder = textHolder;
+
+        // Group
+        item.group = $(item.el).parents(".form-group");
+    }
+
+    function attachCheck (metrics) {
+        metrics.elems.each(function () {
+            each(   attach.bind(this, metrics),
+                    filter(compose(eq(this), dot('el')), items)
+                );
+        });
+    }
 
 
-var get$Els = compose($, unique, map(dot('selector')));
 
 
-function elsHaveErrors (els) {
-    els = els ? $(els) : $els;
-    var err = false;
-    els.each(function () {
-        if (elHasErrors(this)) err = true;
-    });
-    return err;
-}
-
-
-function getGroup (el) {
-    return $(el).parents(options.groupSelector);
-}
-
-
-function groupHasErrors (group) {
-    return !empty(group.find('.' + options.nodClass));
-}
-
-
-var elHasErrors = compose(groupHasErrors, getGroup);
-
-
-var toggleSubmit;
-function ToggleSubmit (sel) {
-    if (!sel) return function(){};
-    var $btn = $(sel);
-
-    return function (onoff) {
-        switch (onoff) {
-            case 'on' : return disableSubmit($btn, false);
-            case 'off': return disableSubmit($btn, true);
-            default   : return disableSubmit($btn, elsHaveErrors());
-        }
-    };
-}
-
-function disableSubmit ($btn, bool) {
-    $btn.toggleClass('disabled', bool).prop('disabled', bool);
-}
-
-
-function toggleGroupClass (event, args) {
-    var el            = args[0],
-        valid         = args[1],
-        group         = getGroup(el),
-        hasErr        = groupHasErrors(group);
-    group.toggleClass(options.errorClass,    hasErr)
-         .toggleClass(options.successClass, !hasErr);
-    if (!hasErr) args.showValidText();
-}
-
-
-function attachEvents (ev, fns) {
-    return function(el) {
-        each(function(fn){ $(el).on(ev, fn); }, fns);
-    };
-}
-
-
-// main function called by the user
-function nod (met, opt) {
-    if (!met || empty(met)) return;
-
-    metrics           = met;
-    options           = extend(defaultOptions, opt);
-    $els              = get$Els(metrics);
-    listeners         = map(newListener, getListenerArgs(metrics));
-    toggleSubmit      = new ToggleSubmit(options.submitBtn);
-
-    each(attachEvents('nodToggle', [toggleSubmit, toggleGroupClass]), listeners);
+    // Action!
+    initItemsFromSelectors(selectors);
 
     return {
-        toggleSubmit  : toggleSubmit
+        items       : items,
+        attachCheck : attachCheck
     };
 }
+
+var expandMetrics = map(function (metric) { return {
+    elems: $(metric.selector),
+    check: Checker(metric.validate),
+    validText: metric.validText,
+    errorText: metric.errorText
+}});
+
+// Main function called by user
+function nod (metrics) {
+
+    elems = Elems(pluck('selector', metrics));
+
+    metrics = expandMetrics(metrics);
+
+    each(elems.attachCheck, metrics);
+
+    each(attachListener, elems.items);
+
+}
+
+
+
 
 
 window.nod = nod;
