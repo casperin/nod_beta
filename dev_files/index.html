@@ -55,6 +55,26 @@
                 </div>
             </div>
             <div class="form-group">
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1">
+                        Option one is this and that&mdash;be sure to include why it's great
+                    </label>
+                </div>
+                <div class="radio">
+                    <label>
+                        <input type="radio" name="optionsRadios" id="optionsRadios2" value="option2">
+                        Option two can be something else and selecting it will deselect option one
+                    </label>
+                </div>
+            </div>
+            <div class="checkbox form-group">
+                <label>
+                    <input type="checkbox" class="check" value="">
+                    Option one is this and that&mdash;be sure to include why it's great
+                </label>
+            </div>
+            <div class="form-group">
                 <div class="col-sm-offset-2 col-sm-10">
                     <button type="submit" id="submitBtn" class="btn btn-primary">Sign in</button>
                 </div>
@@ -64,6 +84,28 @@
 
     <script>
         var metrics = [
+            {
+                selector: ".one",
+                validate: "same-as:#inputPassword3",
+                validText: "YES PRESENCE",
+                errorText: "No PRESENCE",
+            }
+            ,
+            {
+                selector: ".check",
+                validate: "presence",
+                validText: "YES PRESENCE",
+                errorText: "No PRESENCE",
+            }
+            /*
+            ,
+            {
+                selector: "[name=optionsRadios]",
+                validate: "presence",
+                validText: "YES PRESENCE",
+                errorText: "No PRESENCE",
+            }
+            ,
             {
                 selector: ".one, .selet",
                 validate: "integer",
@@ -76,7 +118,6 @@
                 validText: "YES presence",
                 errorText: "NO presence"
             }
-            /*
             ,
             {
                 selector: ".all",

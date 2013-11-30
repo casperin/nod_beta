@@ -8,8 +8,10 @@ function Elems (selectors) {
             isValid: null,
             checks: [],
             validText: '',
-            textHolder: null,
-            group: null
+            textHolder: $("<span/>", {'class':'help-block nodText'}).hide(),
+            group: null,
+            getValue: makeGetValue(elem),
+            validate: validate
         });
     }
 
@@ -19,16 +21,18 @@ function Elems (selectors) {
             return metrics.check(value) ? true : metrics.errorText;
         });
 
+        // Settings it's initial state (`null` if it's not valid, as if it was
+        // untested)
+        item.isValid = validate(item) || null;
+
         // Valid text
         item.validText = metrics.validText;
 
-        // Text holder
-        var textHolder = $("<span/>", {'class':'help-block nodText'}).hide();
-        $(item.el).after(textHolder);
-        item.textHolder = textHolder;
-
         // Group
         item.group = $(item.el).parents(".form-group");
+
+        // Text holder
+        insertEmptyTextHolder(item, item.group, item.textHolder);
     }
 
     function attachCheck (metrics) {
@@ -39,10 +43,42 @@ function Elems (selectors) {
         });
     }
 
+    function insertEmptyTextHolder(item, group, textHolder) {
+        var type = $(item.el).attr('type');
+        if (type === 'checkbox' || type === 'radio') {
+            // Check for other textHolders in the same position.
+            // Radio buttons share textHolders
+            var previousTextHolder = $(group).find('.nodText');
+            if (previousTextHolder.length) {
+                item.textHolder = previousTextHolder;
+            } else {
+                $(group).append(textHolder);
+            }
+        } else {
+            $(item.el).after(textHolder);
+        }
+    }
+
     function allAreValid () {
         return all(compose(eq(true), dot('isValid')), items);
     }
 
+    function validate (item) {
+        return all(eq(true), map(fnOf(item.getValue()), item.checks));
+    }
+
+    function makeGetValue (elem) {
+        var $el = $(elem);
+        if ($el.attr('type') === 'checkbox') {
+            return function() {
+                return $el.is(':checked');
+            };
+        } else {
+            return function() {
+                return $.trim($el.val());
+            };
+        }
+    }
 
 
 

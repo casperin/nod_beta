@@ -1,13 +1,9 @@
-//+ fnOf :: a -> fn -> b
-var fnOf = autoCurry(function (x, fn) { return fn(x); });
-
-
 //+ runCheck :: item -> event -> dom side effects
 function runCheck (item) {
     return function (ev) {
 
             // We loop through each function that checks the field
-        var results = map(fnOf(ev.target.value), item.checks),
+        var results = map(fnOf(item.getValue()), item.checks),
 
             // If all returns `true`, then it is valid
             isValid = all(eq(true), results),

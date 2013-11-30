@@ -8,8 +8,8 @@ function SubmitButton (selector) {
     }
 
     function toggleBtn () {
-        var bool = !elems.allAreValid();
-        btn.prop('disabled', bool).toggleClass('disabled', bool);
+        var errors = !elems.allAreValid();
+        btn.prop('disabled', errors).toggleClass('disabled', errors);
     }
 
     // Listen to each element and enable/disable submit button

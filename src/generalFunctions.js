@@ -3,7 +3,13 @@ function log () {
     return (arguments[0]);
 }
 
-var invoke = autoCurry(function (method, obj) {
+
+//+ fnOf :: a -> fn -> b
+var fnOf = autoCurry(function (x, fn) {
+        return fn(x);
+    }),
+
+    invoke = autoCurry(function (method, obj) {
         return obj[method]();
     }),
 
