@@ -318,7 +318,8 @@ function runCheck (item) {
         var results = map(fnOf(item.getValue()), item.checks),
 
             // If all returns `true`, then it is valid
-            isValid = all(eq(true), results),
+            //isValid = all(eq(true), results),
+            isValid = item.validate(),
 
             // The text displayed will be either the first item in the results
             // that aren't `true` (errorText), or the item's single `validText`
@@ -362,7 +363,7 @@ function Elems (selectors) {
             textHolder: $("<span/>", {'class':'help-block nodText'}).hide(),
             group: null,
             getValue: makeGetValue(elem),
-            validate: validate
+            validate: null
         });
     }
 
@@ -372,10 +373,6 @@ function Elems (selectors) {
             return metrics.check(value) ? true : metrics.errorText;
         });
 
-        // Settings it's initial state (`null` if it's not valid, as if it was
-        // untested)
-        item.isValid = validate(item) || null;
-
         // Valid text
         item.validText = metrics.validText;
 
@@ -384,6 +381,14 @@ function Elems (selectors) {
 
         // Text holder
         insertEmptyTextHolder(item, item.group, item.textHolder);
+
+
+        item.validate = validate.bind(null, item);
+
+        // Settings it's initial state (`null` if it's not valid, as if it was
+        // untested)
+        item.isValid = item.validate() || null;
+
     }
 
     function attachCheck (metrics) {
@@ -439,7 +444,7 @@ function Elems (selectors) {
     return {
         items       : items,
         attachCheck : attachCheck,
-        allAreValid : allAreValid
+        allAreValid : allAreValid,
     };
 }
 

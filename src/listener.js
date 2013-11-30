@@ -6,7 +6,8 @@ function runCheck (item) {
         var results = map(fnOf(item.getValue()), item.checks),
 
             // If all returns `true`, then it is valid
-            isValid = all(eq(true), results),
+            //isValid = all(eq(true), results),
+            isValid = item.validate(),
 
             // The text displayed will be either the first item in the results
             // that aren't `true` (errorText), or the item's single `validText`
