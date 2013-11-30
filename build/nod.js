@@ -314,16 +314,11 @@ function SubmitButton (selector) {
 function runCheck (item) {
     return function (ev) {
 
-            // We loop through each function that checks the field
-        var results = map(fnOf(item.getValue()), item.checks),
-
-            // If all returns `true`, then it is valid
-            //isValid = all(eq(true), results),
-            isValid = item.validate(),
+        var isValid = item.validate(),
 
             // The text displayed will be either the first item in the results
             // that aren't `true` (errorText), or the item's single `validText`
-            nodText = head(filter(neq(true), results)) || item.validText;
+            nodText = head(filter(neq(true), item.getResults())) || item.validText;
 
         // Set text in textHolder, and update the class of its group
         if (nodText !== undefined) {
@@ -363,7 +358,8 @@ function Elems (selectors) {
             textHolder: $("<span/>", {'class':'help-block nodText'}).hide(),
             group: null,
             getValue: makeGetValue(elem),
-            validate: null
+            validate: null,
+            getResults: null
         });
     }
 
@@ -382,8 +378,10 @@ function Elems (selectors) {
         // Text holder
         insertEmptyTextHolder(item, item.group, item.textHolder);
 
-
+        // Create a function to validate the item
         item.validate = validate.bind(null, item);
+
+        item.getResults = getResults.bind(null, item);
 
         // Settings it's initial state (`null` if it's not valid, as if it was
         // untested)
@@ -400,42 +398,44 @@ function Elems (selectors) {
     }
 
     function insertEmptyTextHolder(item, group, textHolder) {
-        var type = $(item.el).attr('type');
+        // First check if it's a radio button, and if we already have a
+        // textHolder we can use
+        var previousTextHolder  = $(group).find('.nodText'),
+            type                = $(item.el).attr('type');
+        if (type === 'radio' && previousTextHolder.length) {
+            item.textHolder = previousTextHolder;
+            return;
+        }
+
         if (type === 'checkbox' || type === 'radio') {
-            // Check for other textHolders in the same position.
-            // Radio buttons share textHolders
-            var previousTextHolder = $(group).find('.nodText');
-            if (previousTextHolder.length) {
-                item.textHolder = previousTextHolder;
-            } else {
-                $(group).append(textHolder);
-            }
+            $(group).append(textHolder);
         } else {
             $(item.el).after(textHolder);
         }
-    }
-
-    function allAreValid () {
-        return all(compose(eq(true), dot('isValid')), items);
     }
 
     function validate (item) {
         return all(eq(true), map(fnOf(item.getValue()), item.checks));
     }
 
+    function getResults (item) {
+        return map(fnOf(item.getValue()), item.checks);
+    }
+
     function makeGetValue (elem) {
         var $el = $(elem);
         if ($el.attr('type') === 'checkbox') {
-            return function() {
-                return $el.is(':checked');
-            };
+            return function() { return $el.is(':checked'); };
         } else {
-            return function() {
-                return $.trim($el.val());
-            };
+            return function() { return $.trim($el.val()); };
         }
     }
 
+
+    // Checks if all elements are valid
+    function allAreValid () {
+        return all(compose(eq(true), dot('isValid')), items);
+    }
 
 
     // Initialize items
