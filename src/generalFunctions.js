@@ -10,7 +10,7 @@ var invoke = autoCurry(function (method, obj) {
     pluck = autoCurry(function (prop, arr) {
         var result = [], i = -1;
         while (++i < arr.length) {
-            if (arr[i][prop])
+            if (arr[i])
                 result.push(arr[i][prop]);
         }
         return result;
@@ -87,7 +87,31 @@ var invoke = autoCurry(function (method, obj) {
 
     dot = autoCurry(function (prop, obj) {
         return obj[prop];
-    });
+    }),
+
+    debounce = function(func, wait, immediate) {
+        var timeout, args, context, timestamp, result;
+        return function() {
+            context = this;
+            args = arguments;
+            timestamp = new Date();
+            var later = function() {
+                var last = (new Date()) - timestamp;
+                if (last < wait) {
+                    timeout = setTimeout(later, wait - last);
+                } else {
+                    timeout = null;
+                    if (!immediate) result = func.apply(context, args);
+                }
+            };
+            var callNow = immediate && !timeout;
+            if (!timeout) {
+                timeout = setTimeout(later, wait);
+            }
+            if (callNow) result = func.apply(context, args);
+            return result;
+        };
+    };
 
 function compose() {
     var fns = arguments;

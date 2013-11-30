@@ -6,15 +6,15 @@ var expandMetrics = map(function (metric) { return {
 }});
 
 // Main function called by user
-function nod (metrics) {
+function nod (metrics, options) {
 
     elems = Elems(pluck('selector', metrics));
 
-    metrics = expandMetrics(metrics);
-
-    each(elems.attachCheck, metrics);
+    each(elems.attachCheck, expandMetrics(metrics));
 
     each(attachListener, elems.items);
+
+    SubmitButton(options.submitBtn);
 
 }
 

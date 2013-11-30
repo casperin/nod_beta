@@ -11,7 +11,7 @@ var invoke = autoCurry(function (method, obj) {
     pluck = autoCurry(function (prop, arr) {
         var result = [], i = -1;
         while (++i < arr.length) {
-            if (arr[i][prop])
+            if (arr[i])
                 result.push(arr[i][prop]);
         }
         return result;
@@ -88,7 +88,31 @@ var invoke = autoCurry(function (method, obj) {
 
     dot = autoCurry(function (prop, obj) {
         return obj[prop];
-    });
+    }),
+
+    debounce = function(func, wait, immediate) {
+        var timeout, args, context, timestamp, result;
+        return function() {
+            context = this;
+            args = arguments;
+            timestamp = new Date();
+            var later = function() {
+                var last = (new Date()) - timestamp;
+                if (last < wait) {
+                    timeout = setTimeout(later, wait - last);
+                } else {
+                    timeout = null;
+                    if (!immediate) result = func.apply(context, args);
+                }
+            };
+            var callNow = immediate && !timeout;
+            if (!timeout) {
+                timeout = setTimeout(later, wait);
+            }
+            if (callNow) result = func.apply(context, args);
+            return result;
+        };
+    };
 
 function compose() {
     var fns = arguments;
@@ -137,6 +161,149 @@ function autoCurry(fn, numArgs) {
 
 var elems = [];      // List of all elements
 
+function Checker (m) {
+
+    // User defined function for checking the validity of the input
+    if (!!(m && m.constructor && m.call && m.apply)) {
+        return m;
+    }
+
+
+    if (m instanceof RegExp) {
+        return function (value) {
+            return m.test(value);
+        };
+    }
+
+    var args  = m.split(':'),
+        type = args.shift(),
+        checker = checkers[type];
+
+    if(!checker) {
+        throw new Error("I don't know how to check for: " + type);
+    }
+
+    return checker.apply(this, args);
+}
+
+var checkers = {
+    'presence' : function () {
+        return function (value) {
+            return !!value;
+        };
+    },
+
+    'empty' : function () {
+        return function (value) {
+            return value.length === 0 || !!(void 0);
+        };
+    },
+
+    'exact' : function (checkValue) {
+        return function (value) {
+            return value === checkValue;
+        };
+    },
+
+    'not' : function (checkValue) {
+        return function (value) {
+            return value !== checkValue;
+        };
+    },
+
+    'same-as' : function (selector) {
+        if ($(selector).length !== 1) {
+            throw new Error('same-as selector must target one and only one element');
+        }
+
+        return function (value) {
+            return value === $(selector).val();
+        };
+    },
+
+    'min': function (min) {
+        return function (value) {
+            var parsedVal = isNaN(value) ? value.length : +value;
+            return parsedVal >= +min;
+        };
+    },
+
+    'max': function (max) {
+        return function (value) {
+            var parsedVal = isNaN(value) ? value.length : +value;
+            return parsedVal <= +max;
+        };
+    },
+
+    'between': function (min, max) {
+        return function (value) {
+            var parsedVal = isNaN(value) ? value.length : +value;
+            return parsedVal >= +min && parsedVal <= +max;
+        };
+    },
+
+    'exact-length': function (length) {
+        return function (value) {
+            return value.length === +length;
+        };
+    },
+
+    'integer': function () {
+        return function (value) {
+            return regexps["int"].test(value);
+        };
+    },
+
+    'float': function () {
+        return function (value) {
+            return regexps["float"].test(value);
+        };
+    },
+
+    'email': function () {
+        return function (value) {
+            return regexps["email"].test(value);
+        };
+    }
+};
+
+// These checkers share their checking functions
+checkers["one-of"] = checkers["presence"];
+checkers["all-or-none"] = checkers["presence"];
+
+// Backwards compatability
+checkers["min-length"] = checkers["min-num"] = checkers["min"];
+checkers["max-length"] = checkers["max-num"] = checkers["max"];
+checkers["between-length"] = checkers["between-num"] = checkers["between"];
+
+var regexps = {
+    "int" : /^\s*\d+\s*$/,
+    "float" : /^\s*[-+]?[0-9]+(\.[0-9]+)\s*?$/,
+    // email regexp follows RFC822
+    "email" : /^([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*$/
+}
+
+function SubmitButton (selector) {
+    if (!selector) return;
+
+    var btn = $(selector);
+
+    function listenTo (item) {
+        $(item.el).on('toggle:isValid', toggleBtn);
+    }
+
+    function toggleBtn () {
+        var bool = !elems.allAreValid();
+        btn.prop('disabled', bool).toggleClass('disabled', bool);
+    }
+
+    // Listen to each element and enable/disable submit button
+    each(listenTo, elems.items);
+
+    // Toggle button from the beginning
+    toggleBtn();
+}
+
 //+ fnOf :: a -> fn -> b
 var fnOf = autoCurry(function (x, fn) { return fn(x); });
 
@@ -144,19 +311,38 @@ var fnOf = autoCurry(function (x, fn) { return fn(x); });
 //+ runCheck :: item -> event -> dom side effects
 function runCheck (item) {
     return function (ev) {
+
+            // We loop through each function that checks the field
         var results = map(fnOf(ev.target.value), item.checks),
+
+            // If all returns `true`, then it is valid
             isValid = all(eq(true), results),
+
+            // The text displayed will be either the first item in the results
+            // that aren't `true` (errorText), or the item's single `validText`
             nodText = head(filter(neq(true), results)) || item.validText;
 
-        item.textHolder.html(nodText).fadeIn();
+        // Set text in textHolder, and update the class of its group
+        if (nodText !== undefined) {
+            item.textHolder.html(nodText).fadeIn();
+        } else {
+            item.textHolder.hide();
+        }
         item.group
             .toggleClass("has-success", isValid)
             .toggleClass("has-error", !isValid);
+
+        if (item.isValid !== isValid) {
+            item.isValid = isValid;
+            $(item.el).trigger('toggle:isValid');
+        }
     }
 }
 
 function attachListener (item) {
-    $(item.el).on('keyup', runCheck(item));
+    $(item.el)
+        .on('keyup', debounce(runCheck(item), 700))
+        .on('change blur', runCheck(item));
 }
 
 
@@ -168,6 +354,7 @@ function Elems (selectors) {
     function initItem (elem) {
         items.push({
             el: elem,
+            isValid: null,
             checks: [],
             validText: '',
             textHolder: null,
@@ -201,15 +388,20 @@ function Elems (selectors) {
         });
     }
 
+    function allAreValid () {
+        return all(compose(eq(true), dot('isValid')), items);
+    }
 
 
 
-    // Action!
+
+    // Initialize items
     initItemsFromSelectors(selectors);
 
     return {
         items       : items,
-        attachCheck : attachCheck
+        attachCheck : attachCheck,
+        allAreValid : allAreValid
     };
 }
 
@@ -221,15 +413,15 @@ var expandMetrics = map(function (metric) { return {
 }});
 
 // Main function called by user
-function nod (metrics) {
+function nod (metrics, options) {
 
     elems = Elems(pluck('selector', metrics));
 
-    metrics = expandMetrics(metrics);
-
-    each(elems.attachCheck, metrics);
+    each(elems.attachCheck, expandMetrics(metrics));
 
     each(attachListener, elems.items);
+
+    SubmitButton(options.submitBtn);
 
 }
 

@@ -5,6 +5,7 @@ function Elems (selectors) {
     function initItem (elem) {
         items.push({
             el: elem,
+            isValid: null,
             checks: [],
             validText: '',
             textHolder: null,
@@ -38,14 +39,19 @@ function Elems (selectors) {
         });
     }
 
+    function allAreValid () {
+        return all(compose(eq(true), dot('isValid')), items);
+    }
 
 
 
-    // Action!
+
+    // Initialize items
     initItemsFromSelectors(selectors);
 
     return {
         items       : items,
-        attachCheck : attachCheck
+        attachCheck : attachCheck,
+        allAreValid : allAreValid
     };
 }

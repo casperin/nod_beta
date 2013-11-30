@@ -3,6 +3,7 @@ var src = [
     'src/generalFunctions.js',
     'src/config.js',
     'src/Checker.js',
+    'src/submitButton.js',
     'src/listener.js',
     'src/Elems.js',
     'src/main.js'
