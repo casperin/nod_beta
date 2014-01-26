@@ -87,12 +87,19 @@
             {
                 selector: ".one",
                 validate: "same-as:#inputPassword3",
+                validText: "YES SAME",
+                errorText: "No SAME",
+            }
+            ,
+            {
+                selector: ".one",
+                validate: "presence",
                 validText: "YES PRESENCE",
                 errorText: "No PRESENCE",
             }
             ,
             {
-                selector: ".check",
+                selector: "#inputPassword3",
                 validate: "presence",
                 validText: "YES PRESENCE",
                 errorText: "No PRESENCE",

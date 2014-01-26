@@ -1,6 +1,7 @@
 var expandMetrics = map(function (metric) { return {
     elems: $(metric.selector),
     check: Checker(metric.validate),
+    validate: metric.validate,
     validText: metric.validText,
     errorText: metric.errorText
 }});

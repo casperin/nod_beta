@@ -131,6 +131,7 @@ function compose() {
 }
 
 function head(arr){ return arr[0]; }
+function last(arr){ return arr[arr.length-1]; }
 
 
 function curry(fn) {

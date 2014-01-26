@@ -2,7 +2,7 @@
 function runCheck (item) {
     return function (ev) {
 
-        var isValid = item.validate(),
+        var isValid = item.valiateElement(),
 
             // The text displayed will be either the first item in the results
             // that aren't `true` (errorText), or the item's single `validText`
@@ -25,10 +25,26 @@ function runCheck (item) {
     }
 }
 
-function attachListener (item) {
-    $(item.el)
+function listenTo (item, selector) {
+    $(selector)
         .on('keyup', debounce(runCheck(item), 700))
         .on('change blur', runCheck(item));
+}
+
+function attachListener (item) {
+
+    // Listen to changes of its own element
+    listenTo(item, item.el);
+
+    // Prepare special case(s)
+    var validates_list = map(function(validateText) {
+            return validateText.split(":");
+        }, item.validates);
+
+    // Listen to the selector in "same-as" validates
+    each(   compose(listenTo.bind(null, item), last),
+            filter(compose(eq("same-as"), head), validates_list));
+
 }
 
 
