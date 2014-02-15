@@ -84,6 +84,7 @@
 
     <script>
         var metrics = [
+            /*
             {
                 selector: ".one",
                 validate: "same-as:#inputPassword3",
@@ -98,14 +99,15 @@
                 errorText: "No PRESENCE",
             }
             ,
+            */
             {
                 selector: "#inputPassword3",
                 validate: "presence",
                 validText: "YES PRESENCE",
                 errorText: "No PRESENCE",
             }
-            /*
             ,
+            /*
             {
                 selector: "[name=optionsRadios]",
                 validate: "presence",
@@ -119,12 +121,14 @@
                 //validText: "YES INTEGER",
                 errorText: "NO INTEGER"
             },
+            */
             {
-                selector: ".select",
+                selector: ".check2",
                 validate: "presence",
                 validText: "YES presence",
                 errorText: "NO presence"
             }
+            /*
             ,
             {
                 selector: ".all",
@@ -136,6 +140,12 @@
         ];
 
         var n = nod(metrics, {submitBtn: "#submitBtn"});
+
+        $(".check").addClass("check2");
+
+        var e = n.add($(".check"));
+
+
     </script>
     
 </body>

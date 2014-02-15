@@ -1,10 +1,8 @@
 function SubmitButton (selector) {
-    if (!selector) return;
-
     var btn = $(selector);
 
-    function listenTo (item) {
-        $(item.el).on('toggle:isValid', toggleBtn);
+    function listenTo (el) {
+        $(el).on('toggle:isValid', toggleBtn);
     }
 
     function toggleBtn () {
@@ -13,8 +11,12 @@ function SubmitButton (selector) {
     }
 
     // Listen to each element and enable/disable submit button
-    each(listenTo, elems.items);
+    each(compose(listenTo, dot('el')), elems.items);
 
     // Toggle button from the beginning
     toggleBtn();
+
+    return {
+        add: listenTo
+    };
 }

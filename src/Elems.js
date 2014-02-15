@@ -1,9 +1,18 @@
-function Elems (selectors) {
+function Elems (metrics) {
     var items = [],
-        initItemsFromSelectors = compose(each(initItem), $, invoke('join'));
+
+        initItemsFromSelectors = compose(each(initItem), $, invoke('join')),
+
+        expandMetrics = map(function (metric) { return {
+            elems: $(metric.selector),
+            check: Checker(metric.validate),
+            validate: metric.validate,
+            validText: metric.validText,
+            errorText: metric.errorText
+        }});
 
     function initItem (elem) {
-        items.push({
+        var item = {
             el: elem,                       // Original element
             isValid: null,                  // Boolean flag
             checks: [],                     // List of functions to check value
@@ -13,9 +22,11 @@ function Elems (selectors) {
             group: null,                    // Parent group of the element
             getValue: makeGetValue(elem),   // Function that gets the value
             validates: [],                  // List of original texts from user
-            valiateElement: null,       // Function that runs each fn in checks
+            validateElement: null,       // Function that runs each fn in checks
             getResults: null                // Gets the (in)valid text msg
-        });
+        };
+        items.push(item);
+        return item;
     }
 
     // "Copies" over attributes from extended metrics to the item
@@ -40,17 +51,17 @@ function Elems (selectors) {
         item.validates.push(metrics.validate);
 
         // Create a function to validate the item
-        item.valiateElement = valiateElement.bind(null, item);
+        item.validateElement = validateElement.bind(null, item);
 
         item.getResults = getResults.bind(null, item);
 
         // Settings it's initial state (`null` if it's not valid, as if it was
         // untested)
-        item.isValid = item.valiateElement() || null;
+        item.isValid = item.validateElement() || null;
 
     }
 
-    function attachCheck (metrics) {
+    function attachCheck (items, metrics) {
         // For each $el in the expanded metrics...
         metrics.elems.each(function () {
             // Find its correspondent element(s) in items here
@@ -58,6 +69,7 @@ function Elems (selectors) {
             // Attach the attributes from the metrics to the element(s)
             each(attach.bind(this, metrics), sameItems);
         });
+        return items;
     }
 
     function insertEmptyTextHolder(item, group, textHolder) {
@@ -73,13 +85,13 @@ function Elems (selectors) {
         if (type === 'checkbox' || type === 'radio') {
             $(group).append(textHolder);
         } else {
-            $(item.el).after(textHolder);
+            $(item.el).after(textHolder);   // normal input fields
         }
     }
 
-    function valiateElement (item) {
-        // Fetches the elments' value and returns `true` if it passes all its
-        // checkers
+    // Fetches the elments' value and returns `true` if it passes all its
+    // checkers
+    function validateElement (item) {
         return all(eq(true), map(fnOf(item.getValue()), item.checks));
     }
 
@@ -104,11 +116,20 @@ function Elems (selectors) {
 
 
     // Initialize items
-    initItemsFromSelectors(selectors);
+    initItemsFromSelectors(pluck('selector', metrics));
+    each(attachCheck.bind(this, items), expandMetrics(metrics));
+
+
+    function addElement (el) {
+        var items = [initItem($(el)[0])];
+        each(attachCheck.bind(this, items), expandMetrics(metrics));
+        return items;
+    }
+
 
     return {
         items       : items,
-        attachCheck : attachCheck,
         allAreValid : allAreValid,
+        addElement  : addElement
     };
 }

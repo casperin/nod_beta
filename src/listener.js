@@ -2,7 +2,7 @@
 function runCheck (item) {
     return function (ev) {
 
-        var isValid = item.valiateElement(),
+        var isValid = item.validateElement(),
 
             // The text displayed will be either the first item in the results
             // that aren't `true` (errorText), or the item's single `validText`
