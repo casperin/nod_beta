@@ -83,6 +83,13 @@
     </div>
 
     <script>
+
+        nod.checkers.divbytwo = function () {
+            return function (val) {
+                return !!val && val % 2 === 0;
+            };
+        };
+
         var metrics = [
             /*
             {
@@ -92,14 +99,15 @@
                 errorText: "No SAME",
             }
             ,
+            */
             {
                 selector: ".one",
-                validate: "presence",
-                validText: "YES PRESENCE",
-                errorText: "No PRESENCE",
+                validate: "divbytwo",
+                validText: "YES CUSTOM FN",
+                errorText: "No CUSTOM FN",
             }
             ,
-            */
+            /*
             {
                 selector: "#inputPassword3",
                 validate: "presence",
@@ -107,7 +115,6 @@
                 errorText: "No PRESENCE",
             }
             ,
-            /*
             {
                 selector: "[name=optionsRadios]",
                 validate: "presence",

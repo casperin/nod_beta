@@ -511,8 +511,6 @@ function nod (metrics, options) {
 
 
     return {
-        checkers: checkers, // so users can extend as they please
-
         add: function (el) {
             var items = elems.addElement(el);
             each(attachListener, items);
@@ -523,8 +521,7 @@ function nod (metrics, options) {
 
 }
 
-
-
+nod.checkers = checkers;
 
 
 window.nod = nod;
