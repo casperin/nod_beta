@@ -79,6 +79,13 @@ var fnOf = autoCurry(function (x, fn) {
         return y !== x;
     }),
 
+    findIndex = autoCurry(function (item, list) {
+        for (var i = 0; i < list.length; i++) {
+            if (list[i] === item) return i;
+        }
+        return -1;
+    }),
+
     filter = autoCurry(function (fn, items) {
         if (items.filter) return items.filter(fn);
         if (items.length === +items.length) {
