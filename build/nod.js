@@ -1,8 +1,5 @@
 ;(function(window, undefined){
-'use strict';function log () {
-    console.log(arguments);
-    return (arguments[0]);
-}
+'use strict';var log = console.log.bind(console);
 
 
 //+ fnOf :: a -> fn -> b
@@ -66,6 +63,14 @@ var fnOf = autoCurry(function (x, fn) {
           if (!fn(arr[i])) return false;
         return true;
     }),
+
+    any = autoCurry(function (fn, arr) {
+        var i = -1;
+        while (++i < arr.length)
+          if (fn(arr[i])) return true;
+        return false;
+    }),
+
 
     eq = autoCurry(function (x, y) {
         return y === x;
@@ -421,7 +426,7 @@ function Elems (metrics) {
 
         item.getResults = getResults.bind(null, item);
 
-        // Settings it's initial state (`null` if it's not valid, as if it was
+        // Settings its initial state (`null` if it's not valid, as if it was
         // untested)
         item.isValid = item.validateElement() || null;
 
@@ -486,17 +491,54 @@ function Elems (metrics) {
     each(attachCheck.bind(this, items), expandMetrics(metrics));
 
 
+
+
+    // After nod is initialized a user can add more elements
     function addElement (el) {
-        var items = [initItem($(el)[0])];
-        each(attachCheck.bind(this, items), expandMetrics(metrics));
-        return items;
+        // check if element is already in the list and ignore if so
+        if (any(compose(eq(el), dot('el')), items)) return;
+
+        // add the them to the items list
+        var newItems = [initItem(el)];
+        each(attachCheck.bind(this, newItems), expandMetrics(metrics));
+        return newItems;
+    }
+
+    function removeElement (el) {
+        // find the element in the items list
+        var item = filter(compose(eq(el), dot('el')), items)[0];
+        if (!item) return;
+        // remove any (in)valid text
+        item.textHolder.remove();
+        // make sure everything in nod considers the field valid
+        item.checks = [function() {return true;}];
+        $(item.el).trigger('change');
+
+        // remove it from the list of items
+        removeItemfromItems(item);
+        return el;
+    }
+
+    function removeItemfromItems (item) {
+        var index = findIndexOfItem(item);
+        if (index > -1) {
+            items.splice(index, 1);
+        }
+    }
+
+    function findIndexOfItem (item) {
+        for (var i = 0; i < items.length; i++) {
+            if (items[i] === item) return i;
+        }
+        return -1;
     }
 
 
     return {
-        items       : items,
-        allAreValid : allAreValid,
-        addElement  : addElement
+        items           : items,
+        allAreValid     : allAreValid,
+        addElement      : addElement,
+        removeElement   : removeElement
     };
 }
 
@@ -509,14 +551,25 @@ function nod (metrics, options) {
 
     var submit = SubmitButton(options.submitBtn);
 
-
-    return {
-        add: function (el) {
-            var items = elems.addElement(el);
+    function addElement (el) {
+        $(el).each(function () {
+            var items = elems.addElement(this);
+            if (!items) return;
             each(attachListener, items);
             submit.add(el);
-            return items;
-        }
+        });
+    }
+
+    function removeElement (el) {
+        el = $(el);
+        el.each(function () { elems.removeElement(this); });
+        el.off();
+    }
+
+    return {
+        add         : addElement,
+        remove      : removeElement,
+        allValid    : elems.allAreValid
     };
 
 }

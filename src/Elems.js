@@ -55,7 +55,7 @@ function Elems (metrics) {
 
         item.getResults = getResults.bind(null, item);
 
-        // Settings it's initial state (`null` if it's not valid, as if it was
+        // Settings its initial state (`null` if it's not valid, as if it was
         // untested)
         item.isValid = item.validateElement() || null;
 
@@ -120,16 +120,53 @@ function Elems (metrics) {
     each(attachCheck.bind(this, items), expandMetrics(metrics));
 
 
+
+
+    // After nod is initialized a user can add more elements
     function addElement (el) {
-        var items = [initItem($(el)[0])];
-        each(attachCheck.bind(this, items), expandMetrics(metrics));
-        return items;
+        // check if element is already in the list and ignore if so
+        if (any(compose(eq(el), dot('el')), items)) return;
+
+        // add the them to the items list
+        var newItems = [initItem(el)];
+        each(attachCheck.bind(this, newItems), expandMetrics(metrics));
+        return newItems;
+    }
+
+    function removeElement (el) {
+        // find the element in the items list
+        var item = filter(compose(eq(el), dot('el')), items)[0];
+        if (!item) return;
+        // remove any (in)valid text
+        item.textHolder.remove();
+        // make sure everything in nod considers the field valid
+        item.checks = [function() {return true;}];
+        $(item.el).trigger('change');
+
+        // remove it from the list of items
+        removeItemfromItems(item);
+        return el;
+    }
+
+    function removeItemfromItems (item) {
+        var index = findIndexOfItem(item);
+        if (index > -1) {
+            items.splice(index, 1);
+        }
+    }
+
+    function findIndexOfItem (item) {
+        for (var i = 0; i < items.length; i++) {
+            if (items[i] === item) return i;
+        }
+        return -1;
     }
 
 
     return {
-        items       : items,
-        allAreValid : allAreValid,
-        addElement  : addElement
+        items           : items,
+        allAreValid     : allAreValid,
+        addElement      : addElement,
+        removeElement   : removeElement
     };
 }

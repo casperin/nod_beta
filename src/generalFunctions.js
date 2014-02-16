@@ -1,7 +1,4 @@
-function log () {
-    console.log(arguments);
-    return (arguments[0]);
-}
+var log = console.log.bind(console);
 
 
 //+ fnOf :: a -> fn -> b
@@ -65,6 +62,14 @@ var fnOf = autoCurry(function (x, fn) {
           if (!fn(arr[i])) return false;
         return true;
     }),
+
+    any = autoCurry(function (fn, arr) {
+        var i = -1;
+        while (++i < arr.length)
+          if (fn(arr[i])) return true;
+        return false;
+    }),
+
 
     eq = autoCurry(function (x, y) {
         return y === x;
