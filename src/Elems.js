@@ -9,7 +9,7 @@ function Elems (metrics) {
             validate: metric.validate,
             validText: metric.validText,
             errorText: metric.errorText
-        }});
+        };});
 
     function initItem (elem) {
         var item = {

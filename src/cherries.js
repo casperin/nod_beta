@@ -219,7 +219,7 @@ function find(fn, items){
         if (fn(items_[i])) return items_[i];
     } else {
       for (var key in items_) {
-        if (items_.hasOwnProperty(key) && fn(items_[key])) 
+        if (items_.hasOwnProperty(key) && fn(items_[key]))
           return items_[key];
       }
     }

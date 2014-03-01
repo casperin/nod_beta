@@ -1,1 +1,1 @@
-var elems = [];      // List of all elements
+var elems = []      // List of all elements

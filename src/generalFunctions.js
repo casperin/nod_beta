@@ -36,20 +36,22 @@ var fnOf = autoCurry(function (x, fn) {
             fn(items[i]);
         } else {
           for (var key in items)
-            items.hasOwnProperty(key) && fn(items[key]);
+            if (items.hasOwnProperty(key)) fn(items[key]);
         }
         return items;
     }),
 
     map = autoCurry(function (fn, items) {
+        var result, i;
         if (items.map) return items.map(fn);
         if (items.length === +items.length) {
-          var result = [], i = -1;
+          result = [];
+          i = -1;
           while (++i < items.length)
             result.push(fn(items[i]));
           return result;
         } else {
-          var result = {};
+          result = {};
           for (var key in items_)
             if (items.hasOwnProperty(k)) result[key] = fn(items[key]);
           return result;
@@ -87,14 +89,16 @@ var fnOf = autoCurry(function (x, fn) {
     }),
 
     filter = autoCurry(function (fn, items) {
+        var result, i;
         if (items.filter) return items.filter(fn);
         if (items.length === +items.length) {
-          var result = [], i = -1;
+          result = [];
+          i = -1;
           while (++i < items.length)
-            fn(items[i]) && result.push(items[i]);
+            if (fn(items[i])) result.push(items[i]);
           return result;
         } else {
-          var result = {};
+          result = {};
           for (var key in items) {
             if (items.hasOwnProperty(key) && fn(items[key]))
               result[key] = items[key];
@@ -160,7 +164,7 @@ function curry(fn) {
 function autoCurry(fn, numArgs) {
   var toArray = function(arr, from) {
     return Array.prototype.slice.call(arr, from || 0);
-  },
+  };
   numArgs = numArgs || fn.length;
   return function() {
     var rem;
