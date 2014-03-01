@@ -26,7 +26,7 @@ function nod (metrics, options) {
         add         : addElement,
         remove      : removeElement,
         allValid    : elems.allAreValid
-    }
+    };
 
 }
 

@@ -22,7 +22,7 @@ function runCheck (item) {
             item.isValid = isValid;
             $(item.el).trigger('toggle:isValid');
         }
-    }
+    };
 }
 
 function listenTo (item, selector) {
