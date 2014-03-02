@@ -1,6 +1,6 @@
 function Elems (metrics) {
 
-    var $els = compose($, invoke('join'), pluck('selector'))(metrics);
+    var $els = $(pluck('selector', metrics).join());
 
     this.items = [];
 
