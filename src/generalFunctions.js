@@ -81,6 +81,24 @@ var fnOf = autoCurry(function (x, fn) {
         return y !== x;
     }),
 
+    find = autoCurry(function (fn, items) {
+        var len = items.length;
+        if (len === +len) {
+            var i = -1;
+            while (++i < len) {
+                if (fn(items[i])) {
+                    return items[i];
+                }
+            }
+        } else {
+            for (var key in items) {
+                if (items.hasOwnProperty(key) && fn(items[key])) {
+                    return items[key];
+                }
+            }
+        }
+    }),
+
     findIndex = autoCurry(function (item, list) {
         for (var i = 0; i < list.length; i++) {
             if (list[i] === item) return i;

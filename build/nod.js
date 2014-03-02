@@ -37,20 +37,22 @@ var fnOf = autoCurry(function (x, fn) {
             fn(items[i]);
         } else {
           for (var key in items)
-            items.hasOwnProperty(key) && fn(items[key]);
+            if (items.hasOwnProperty(key)) fn(items[key]);
         }
         return items;
     }),
 
     map = autoCurry(function (fn, items) {
+        var result, i;
         if (items.map) return items.map(fn);
         if (items.length === +items.length) {
-          var result = [], i = -1;
+          result = [];
+          i = -1;
           while (++i < items.length)
             result.push(fn(items[i]));
           return result;
         } else {
-          var result = {};
+          result = {};
           for (var key in items_)
             if (items.hasOwnProperty(k)) result[key] = fn(items[key]);
           return result;
@@ -80,6 +82,24 @@ var fnOf = autoCurry(function (x, fn) {
         return y !== x;
     }),
 
+    find = autoCurry(function (fn, items) {
+        var len = items.length;
+        if (len === +len) {
+            var i = -1;
+            while (++i < len) {
+                if (fn(items[i])) {
+                    return items[i];
+                }
+            }
+        } else {
+            for (var key in items) {
+                if (items.hasOwnProperty(key) && fn(items[key])) {
+                    return items[key];
+                }
+            }
+        }
+    }),
+
     findIndex = autoCurry(function (item, list) {
         for (var i = 0; i < list.length; i++) {
             if (list[i] === item) return i;
@@ -88,14 +108,16 @@ var fnOf = autoCurry(function (x, fn) {
     }),
 
     filter = autoCurry(function (fn, items) {
+        var result, i;
         if (items.filter) return items.filter(fn);
         if (items.length === +items.length) {
-          var result = [], i = -1;
+          result = [];
+          i = -1;
           while (++i < items.length)
-            fn(items[i]) && result.push(items[i]);
+            if (fn(items[i])) result.push(items[i]);
           return result;
         } else {
-          var result = {};
+          result = {};
           for (var key in items) {
             if (items.hasOwnProperty(key) && fn(items[key]))
               result[key] = items[key];
@@ -161,7 +183,7 @@ function curry(fn) {
 function autoCurry(fn, numArgs) {
   var toArray = function(arr, from) {
     return Array.prototype.slice.call(arr, from || 0);
-  },
+  };
   numArgs = numArgs || fn.length;
   return function() {
     var rem;
@@ -269,38 +291,38 @@ var checkers = {
 
     'integer': function () {
         return function (value) {
-            return regexps["int"].test(value);
+            return regexps.int.test(value);
         };
     },
 
     'float': function () {
         return function (value) {
-            return regexps["float"].test(value);
+            return regexps.float.test(value);
         };
     },
 
     'email': function () {
         return function (value) {
-            return regexps["email"].test(value);
+            return regexps.email.test(value);
         };
     }
 };
 
 // These checkers share their checking functions
-checkers["one-of"] = checkers["presence"];
-checkers["all-or-none"] = checkers["presence"];
+checkers["one-of"] = checkers.presence;
+checkers["all-or-none"] = checkers.presence;
 
 // Backwards compatability
-checkers["min-length"] = checkers["min-num"] = checkers["min"];
-checkers["max-length"] = checkers["max-num"] = checkers["max"];
-checkers["between-length"] = checkers["between-num"] = checkers["between"];
+checkers["min-length"] = checkers["min-num"] = checkers.min;
+checkers["max-length"] = checkers["max-num"] = checkers.max;
+checkers["between-length"] = checkers["between-num"] = checkers.between;
 
 var regexps = {
     "int" : /^\s*\d+\s*$/,
     "float" : /^\s*[-+]?[0-9]+(\.[0-9]+)\s*?$/,
     // email regexp follows RFC822
     "email" : /^([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*$/
-}
+};
 
 function SubmitButton (selector) {
     var btn = $(selector);
@@ -329,7 +351,7 @@ function SubmitButton (selector) {
 function runCheck (item) {
     return function (ev) {
 
-        var isValid = item.validateElement(),
+        var isValid = item.validate(),
 
             // The text displayed will be either the first item in the results
             // that aren't `true` (errorText), or the item's single `validText`
@@ -349,7 +371,7 @@ function runCheck (item) {
             item.isValid = isValid;
             $(item.el).trigger('toggle:isValid');
         }
-    }
+    };
 }
 
 function listenTo (item, selector) {
@@ -376,199 +398,175 @@ function attachListener (item) {
 
 
 
-function Elems (metrics) {
-    var items = [],
+function Elem (element) {
 
-        initItemsFromSelectors = compose(each(initItem), $, invoke('join')),
+    this.el = element;
 
-        expandMetrics = map(function (metric) { return {
-            elems: $(metric.selector),
-            check: Checker(metric.validate),
-            validate: metric.validate,
-            validText: metric.validText,
-            errorText: metric.errorText
-        }});
+    this.$el = $(this.el);
 
-    function initItem (elem) {
-        var item = {
-            el: elem,                       // Original element
-            isValid: null,                  // Boolean flag
-            checks: [],                     // List of functions to check value
-            validText: '',                  // Only one valid text per element
-            // Empty container to put (in)valid texts into
-            textHolder: $("<span/>", {'class':'help-block nodText'}).hide(),
-            group: null,                    // Parent group of the element
-            getValue: makeGetValue(elem),   // Function that gets the value
-            validates: [],                  // List of original texts from user
-            validateElement: null,       // Function that runs each fn in checks
-            getResults: null                // Gets the (in)valid text msg
-        };
-        items.push(item);
-        return item;
-    }
+    this.group = this.$el.parents(".form-group");
 
-    // "Copies" over attributes from extended metrics to the item
-    function attach (metrics, item) {
-        // Checker (the function to check vaues)
-        item.checks.push(function (value) {
-            return metrics.check(value) ? true : metrics.errorText;
-        });
+    this.textHolder = $('<span/>', {'class':'help-block nod-text'}).hide();
 
-        // Valid text
-        item.validText = metrics.validText;
+    this.checks = [];
 
-        // Group
-        item.group = $(item.el).parents(".form-group");
+    this.validText = '';
 
-        // Text holder
-        // (The empty element we used to insert (in)valid texts)
-        insertEmptyTextHolder(item, item.group, item.textHolder);
+    this.validates = [];
 
-        // Original text from the user (used by listeners to determine if this
-        // elements needs to listen to other elements for instance)
-        item.validates.push(metrics.validate);
+    this.getValue = this.makeGetValue();
 
-        // Create a function to validate the item
-        item.validateElement = validateElement.bind(null, item);
-
-        item.getResults = getResults.bind(null, item);
-
-        // Settings its initial state (`null` if it's not valid, as if it was
-        // untested)
-        item.isValid = item.validateElement() || null;
-
-    }
-
-    function attachCheck (items, metrics) {
-        // For each $el in the expanded metrics...
-        metrics.elems.each(function () {
-            // Find its correspondent element(s) in items here
-            var sameItems = filter(compose(eq(this), dot('el')), items);
-            // Attach the attributes from the metrics to the element(s)
-            each(attach.bind(this, metrics), sameItems);
-        });
-        return items;
-    }
-
-    function insertEmptyTextHolder(item, group, textHolder) {
-        // First check if it's a radio button, and if we already have a
-        // textHolder we can use
-        var previousTextHolder  = $(group).find('.nodText'),
-            type                = $(item.el).attr('type');
-        if (type === 'radio' && previousTextHolder.length) {
-            item.textHolder = previousTextHolder;
-            return;
-        }
-
-        if (type === 'checkbox' || type === 'radio') {
-            $(group).append(textHolder);
-        } else {
-            $(item.el).after(textHolder);   // normal input fields
-        }
-    }
-
-    // Fetches the elments' value and returns `true` if it passes all its
-    // checkers
-    function validateElement (item) {
-        return all(eq(true), map(fnOf(item.getValue()), item.checks));
-    }
-
-    function getResults (item) {
-        return map(fnOf(item.getValue()), item.checks);
-    }
-
-    function makeGetValue (elem) {
-        var $el = $(elem);
-        if ($el.attr('type') === 'checkbox') {
-            return function() { return $el.is(':checked'); };
-        } else {
-            return function() { return $.trim($el.val()); };
-        }
-    }
+    this.isValid = this.validate() || null;
 
 
-    // Checks if all elements are valid
-    function allAreValid () {
-        return all(compose(eq(true), dot('isValid')), items);
-    }
-
-
-    // Initialize items
-    initItemsFromSelectors(pluck('selector', metrics));
-    each(attachCheck.bind(this, items), expandMetrics(metrics));
-
-
-
-
-    // After nod is initialized a user can add more elements
-    function addElement (el) {
-        // check if element is already in the list and ignore if so
-        if (any(compose(eq(el), dot('el')), items)) return;
-
-        // add the them to the items list
-        var newItems = [initItem(el)];
-        each(attachCheck.bind(this, newItems), expandMetrics(metrics));
-        return newItems;
-    }
-
-    function removeElement (el) {
-        // find the element in the items list
-        var item = filter(compose(eq(el), dot('el')), items)[0];
-        if (!item) return;
-        // remove any (in)valid text
-        item.textHolder.remove();
-        // make sure everything in nod considers the field valid
-        item.checks = [function() {return true;}];
-        $(item.el).trigger('change');
-
-        // remove it from the list of items
-        removeItemfromItems(item);
-        return el;
-    }
-
-    function removeItemfromItems (item) {
-        var index = findIndex(item, items);
-        if (index > -1) items.splice(index, 1);
-    }
-
-
-    return {
-        items           : items,
-        allAreValid     : allAreValid,
-        addElement      : addElement,
-        removeElement   : removeElement
-    };
+    // Add the text holder into the dom
+    this.addTextHolderToDom();
 }
+
+Elem.prototype.makeGetValue = function () {
+    if (this.$el.attr('type') === 'checkbox') {
+        return function() { return this.$el.is(':checked'); };
+    } else {
+        return function() { return $.trim(this.el.value); };
+    }
+};
+
+Elem.prototype.validate = function () {
+    return all(eq(true), this.getResults());
+};
+
+Elem.prototype.getResults = function () {
+    return map(fnOf(this.getValue()), this.checks);
+};
+
+// Only run as part of the constructor
+Elem.prototype.addTextHolderToDom = function () {
+    var previousTextHolder = this.group.find('.nod-text'),
+        type = this.$el.attr('type');
+
+    if (type === 'radio' && previousTextHolder.length) {
+        this.textHolder = previousTextHolder;
+    } else if (type === 'radio' || type === 'checkbox') {
+        this.group.append(this.textHolder);
+    } else {
+        this.$el.after(this.textHolder);
+    }
+};
+
+
+
+/*
+ * Run from collection
+ */
+
+Elem.prototype.addCheck = function (check, errorText) {
+    this.checks.push(function (value) {
+        return check(value) ? true : errorText;
+    });
+};
+
+Elem.prototype.setValidText = function (validText) {
+    this.validText = validText;
+};
+
+// String from user metrics such as 'exact-length:2'
+Elem.prototype.addValidate = function (validate) {
+    this.validates.push(validate);
+};
+
+function Elems (metrics) {
+
+    var $els = compose($, invoke('join'), pluck('selector'))(metrics);
+
+    this.items = [];
+
+    this.expandedMetrics = this.expandMetrics(metrics);
+
+    each(this.addElement.bind(this), $els);
+
+    this.attachCheckersFromExpandedMetrics();
+
+}
+
+// Entirely untested
+Elems.prototype.add = function (element) {
+    var elem = this.addElement(element);
+    this.attachCheckersFromExpandedMetrics(elem);
+};
+
+Elems.prototype.addElement = function (element) {
+    var elem;
+    // Only add element if it is not already in the list of items
+    if (all(compose(neq(element), dot('el')), this.items)) {
+        elem = new Elem(element);
+        this.items.push(elem);
+    }
+    return elem;
+};
+
+Elems.prototype.expandMetrics = map(function (metric) {
+    return {
+        $els: $(metric.selector),
+        check: Checker(metric.validate),
+        validate: metric.validate,
+        validText: metric.validText,
+        errorText: metric.errorText
+    };
+});
+
+Elems.prototype.attachCheckersFromExpandedMetrics = function (newItem) {
+    var attachChecker = this.attachChecker,
+        items = newItem ? [newItem] : this.items;
+
+    each(function (expandedMetric) {
+        expandedMetric.$els.each(function () {
+            var item = find(compose(eq(this), dot('el')), items);
+            attachChecker(expandedMetric, item);
+        });
+    }, this.expandedMetrics);
+};
+
+Elems.prototype.attachChecker = function (expandedMetric, item) {
+    item.addCheck(expandedMetric.check, expandedMetric.errorText);
+    item.setValidText(expandedMetric.validText);
+    item.addValidate(expandedMetric.validate);
+};
+
+
+// untested
+Elems.prototype.allAreValid = function () {
+    return all(compose(eq(true), dot('isValid')), this.items);
+};
 
 // Main function called by user
 function nod (metrics, options) {
 
-    elems = Elems(metrics);
+    elems = new Elems(metrics);
 
     each(attachListener, elems.items);
 
     var submit = SubmitButton(options.submitBtn);
 
-    function addElement (el) {
-        $(el).each(function () {
-            var items = elems.addElement(this);
-            if (!items) return;
-            each(attachListener, items);
-            submit.add(el);
-        });
-    }
+    //function addElement (el) {
+        //$(el).each(function () {
+            //var items = elems.addElement(this);
+            //if (!items) return;
+            //each(attachListener, items);
+            //submit.add(el);
+        //});
+    //}
 
-    function removeElement (el) {
-        el = $(el);
-        el.each(function () { elems.removeElement(this); });
-        el.off();
-    }
+    //function removeElement (el) {
+        //el = $(el);
+        //el.each(function () { elems.removeElement(this); });
+        //el.off();
+    //}
 
-    return {
-        add         : addElement,
-        remove      : removeElement,
-        allValid    : elems.allAreValid
-    };
+    //return {
+        //add         : addElement,
+        //remove      : removeElement,
+        //allValid    : elems.allAreValid
+    //};
 
 }
 
