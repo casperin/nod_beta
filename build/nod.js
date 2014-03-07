@@ -289,6 +289,18 @@ var checkers = {
         };
     },
 
+    'min-length': function (length) {
+        return function (value) {
+            return value.length >= +length;
+        };
+    },
+
+    'max-length': function (length) {
+        return function (value) {
+            return value.length <= +length;
+        };
+    },
+
     'integer': function () {
         return function (value) {
             return regexps.int.test(value);
@@ -313,8 +325,8 @@ checkers["one-of"] = checkers.presence;
 checkers["all-or-none"] = checkers.presence;
 
 // Backwards compatability
-checkers["min-length"] = checkers["min-num"] = checkers.min;
-checkers["max-length"] = checkers["max-num"] = checkers.max;
+checkers["min-num"] = checkers.min;
+checkers["max-num"] = checkers.max;
 checkers["between-length"] = checkers["between-num"] = checkers.between;
 
 var regexps = {

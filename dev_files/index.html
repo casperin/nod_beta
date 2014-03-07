@@ -84,68 +84,27 @@
 
     <script>
 
-        /*
-        nod.checkers.divbytwo = function () {
-            return function (val) {
-                return !!val && val % 2 === 0;
+        if (nod.checkers) {
+            nod.checkers.divbytwo = function () {
+                return function (val) {
+                    return !!val && val % 2 === 0;
+                };
             };
-        };
-        */
+        }
 
         var metrics = [
-            /*
             {
                 selector: ".one",
-                validate: "same-as:#inputPassword3",
-                validText: "YES SAME",
-                errorText: "No SAME",
-            }
-            ,
-            {
-                selector: ".one",
-                validate: "divbytwo",
-                validText: "YES CUSTOM FN",
-                errorText: "No CUSTOM FN",
-            }
-            ,
-            */
-            {
-                selector: "#inputPassword3",
-                validate: "presence",
-                validText: "YES PRESENCE",
-                errorText: "No PRESENCE",
-            }
-            ,
-            /*
-            {
-                selector: "[name=optionsRadios]",
-                validate: "presence",
-                validText: "YES PRESENCE",
-                errorText: "No PRESENCE",
-            }
-            ,
-            {
-                selector: ".one, .selet",
                 validate: "integer",
-                //validText: "YES INTEGER",
-                errorText: "NO INTEGER"
+                validText: "YES integer",
+                errorText: "No integer",
             },
-            */
             {
-                selector: ".check",
-                validate: "presence",
-                validText: "YES presence",
-                errorText: "NO presence"
+                selector: ".one, .two",
+                validate: "min-length:3",
+                validText: "YES min length",
+                errorText: "No min length"
             }
-            /*
-            ,
-            {
-                selector: ".all",
-                validate: "exact-length:2",
-                validText: "YES exact-length:2",
-                errorText: "NO exact-length:2"
-            }
-            */
         ];
 
 
