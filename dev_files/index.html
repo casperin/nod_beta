@@ -98,19 +98,19 @@
                 validate: ["integer", "min-length:2"],
                 validText: "YES integer",
                 errorText: ["No integer", "no min leeenggght"]
-            /*
             },
             {
                 selector: ".one, .two",
-                validate: "min-length:3",
-                validText: "YES min length",
-                errorText: "No min length"
-                */
+                validate: "divbytwo",
+                validText: "YES div by two",
+                errorText: "No div by two"
             }
         ];
 
 
         var n = nod(metrics, {submitBtn: "#submitBtn"});
+
+        n.remove($('.two')[0]);
         /*
 
         $(".check").addClass("check2");
