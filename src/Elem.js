@@ -71,5 +71,5 @@ Elem.prototype.setValidText = function (validText) {
 
 // String from user metrics such as 'exact-length:2'
 Elem.prototype.addValidate = function (validate) {
-    this.validates.push(validate);
+    this.validates = this.validates.concat(validate);
 };

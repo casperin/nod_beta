@@ -29,12 +29,16 @@ Elems.prototype.addElement = function (element) {
 };
 
 Elems.prototype.expandMetrics = map(function (metric) {
+    if (typeof metric.validate === 'string') {
+        metric.validate = [metric.validate];
+        metric.errorText = [metric.errorText];
+    }
     return {
         $els: $(metric.selector),
-        check: Checker(metric.validate),
+        checks: map(Checker, metric.validate),
         validate: metric.validate,
         validText: metric.validText,
-        errorText: metric.errorText
+        errorTexts: metric.errorText
     };
 });
 
@@ -51,7 +55,9 @@ Elems.prototype.attachCheckersFromExpandedMetrics = function (newItem) {
 };
 
 Elems.prototype.attachChecker = function (expandedMetric, item) {
-    item.addCheck(expandedMetric.check, expandedMetric.errorText);
+    for (var i = 0; i < expandedMetric.checks.length; i++) {
+        item.addCheck(expandedMetric.checks[i], expandedMetric.errorTexts[i]);
+    }
     item.setValidText(expandedMetric.validText);
     item.addValidate(expandedMetric.validate);
 };
