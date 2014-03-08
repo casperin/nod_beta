@@ -9,9 +9,9 @@ function nod (metrics, options) {
 
     function addElement (el) {
         $(el).each(function () {
-            var items = elems.addElement(this);
-            if (!items) return;
-            each(attachListener, items);
+            var item = elems.add.call(elems, this);
+            if (!item) return;
+            each(attachListener, [item]);
             submit.add(el);
         });
     }

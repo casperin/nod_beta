@@ -4,7 +4,7 @@ function Elems (metrics) {
 
     this.items = [];
 
-    this.expandedMetrics = this.expandMetrics(metrics);
+    this.metrics = metrics;
 
     each(this.addElement.bind(this), $els);
 
@@ -12,10 +12,12 @@ function Elems (metrics) {
 
 }
 
-// Entirely untested
 Elems.prototype.add = function (element) {
     var elem = this.addElement(element);
-    this.attachCheckersFromExpandedMetrics(elem);
+    if (elem) {
+        this.attachCheckersFromExpandedMetrics([elem]);
+        return elem;
+    }
 };
 
 Elems.prototype.addElement = function (element) {
@@ -58,16 +60,25 @@ Elems.prototype.expandMetrics = map(function (metric) {
     };
 });
 
-Elems.prototype.attachCheckersFromExpandedMetrics = function (newItem) {
+Elems.prototype.attachCheckersFromExpandedMetrics = function (newItems) {
     var attachChecker = this.attachChecker,
-        items = newItem ? [newItem] : this.items;
+        items = newItems || this.items;
 
     each(function (expandedMetric) {
         expandedMetric.$els.each(function () {
             var item = find(compose(eq(this), dot('el')), items);
-            attachChecker(expandedMetric, item);
+            /*
+            log('this');
+            log(this);
+            log('items');
+            log(items);
+            log('found:');
+            log(item);
+            log('--');
+            */
+            if (item) attachChecker(expandedMetric, item);
         });
-    }, this.expandedMetrics);
+    }, this.expandMetrics(this.metrics));
 };
 
 Elems.prototype.attachChecker = function (expandedMetric, item) {
