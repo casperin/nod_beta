@@ -555,15 +555,6 @@ Elems.prototype.attachCheckersFromExpandedMetrics = function (newItems) {
     each(function (expandedMetric) {
         expandedMetric.$els.each(function () {
             var item = find(compose(eq(this), dot('el')), items);
-            /*
-            log('this');
-            log(this);
-            log('items');
-            log(items);
-            log('found:');
-            log(item);
-            log('--');
-            */
             if (item) attachChecker(expandedMetric, item);
         });
     }, this.expandMetrics(this.metrics));
