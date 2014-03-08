@@ -95,9 +95,9 @@
         var metrics = [
             {
                 selector: ".one",
-                validate: ["integer", "min-length:2"],
+                validate: ["same-as:.two", "max-length:2"],
                 validText: "YES integer",
-                errorText: ["No integer", "no min leeenggght"]
+                errorText: ["No same", "no presence"]
                 /*
             },
             {
@@ -114,11 +114,11 @@
 
         /*
         n.remove($('.two')[0]);
-        */
 
         $(".two").addClass("one");
 
         var e = n.add($(".two")[0]);
+        */
 
 
     </script>

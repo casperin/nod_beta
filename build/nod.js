@@ -200,8 +200,6 @@ function autoCurry(fn, numArgs) {
   };
 }
 
-var elems = [];      // List of all elements
-
 function Checker (m) {
 
     // User defined function for checking the validity of the input
@@ -336,20 +334,21 @@ var regexps = {
     "email" : /^([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*$/
 };
 
-function SubmitButton (selector) {
+function SubmitButton (elems, selector) {
     var btn = $(selector);
 
-    function listenTo (el) {
-        $(el).on('toggle:isValid', toggleBtn);
+    function listenTo ($el) {
+        $el.on('toggle:isValid', toggleBtn);
     }
 
     function toggleBtn () {
         var errors = !elems.allAreValid();
+        //log(errors);
         btn.prop('disabled', errors).toggleClass('disabled', errors);
     }
 
     // Listen to each element and enable/disable submit button
-    each(compose(listenTo, dot('el')), elems.items);
+    each(compose(listenTo, dot('$el')), elems.items);
 
     // Toggle button from the beginning
     toggleBtn();
@@ -358,57 +357,6 @@ function SubmitButton (selector) {
         add: listenTo
     };
 }
-
-//+ runCheck :: item -> event -> dom side effects
-function runCheck (item) {
-    return function (ev) {
-
-        var isValid = item.validate(),
-
-            // The text displayed will be either the first item in the results
-            // that aren't `true` (errorText), or the item's single `validText`
-            nodText = head(filter(neq(true), item.getResults())) || item.validText;
-
-        // Set text in textHolder, and update the class of its group
-        if (nodText !== undefined) {
-            item.textHolder.html(nodText).fadeIn();
-        } else {
-            item.textHolder.hide();
-        }
-        item.group
-            .toggleClass("has-success", isValid)
-            .toggleClass("has-error", !isValid);
-
-        if (item.isValid !== isValid) {
-            item.isValid = isValid;
-            $(item.el).trigger('toggle:isValid');
-        }
-    };
-}
-
-function listenTo (item, selector) {
-    $(selector)
-        .on('keyup', debounce(runCheck(item), 700))
-        .on('change blur', runCheck(item));
-}
-
-function attachListener (item) {
-
-    // Listen to changes of its own element
-    listenTo(item, item.el);
-
-    // Prepare special case(s)
-    var validates_list = map(function(validateText) {
-            return validateText.split(":");
-        }, item.validates);
-
-    // Listen to the selector in "same-as" validates
-    each(   compose(listenTo.bind(null, item), last),
-            filter(compose(eq("same-as"), head), validates_list));
-
-}
-
-
 
 function Elem (element) {
 
@@ -424,15 +372,17 @@ function Elem (element) {
 
     this.validText = '';
 
+    this.isValid = null;
+
     this.validates = [];
 
     this.getValue = this.makeGetValue();
 
-    this.isValid = this.validate() || null;
-
 
     // Add the text holder into the dom
     this.addTextHolderToDom();
+
+    //this.attachListeners();
 }
 
 Elem.prototype.makeGetValue = function () {
@@ -475,6 +425,7 @@ Elem.prototype.addCheck = function (check, errorText) {
     this.checks.push(function (value) {
         return check(value) ? true : errorText;
     });
+    this.isValid = this.validate() || null;
 };
 
 Elem.prototype.setValidText = function (validText) {
@@ -484,6 +435,52 @@ Elem.prototype.setValidText = function (validText) {
 // String from user metrics such as 'exact-length:2'
 Elem.prototype.addValidate = function (validate) {
     this.validates = this.validates.concat(validate);
+};
+
+
+
+
+Elem.prototype.attachListeners = function () {
+    this.listenTo(this.$el);
+
+    // Prepare special case(s)
+    var validates_list = map(function(validateText) {
+            return validateText.split(":");
+        }, this.validates);
+
+    each( // Listen to the selector in "same-as" validates
+        compose(this.listenTo.bind(this), $, last),
+        filter(compose(eq("same-as"), head), validates_list)
+    );
+};
+
+Elem.prototype.listenTo = function ($el) {
+    $el .off()  // We only want to listen to it once
+        .on('keyup', debounce(this.runCheck.bind(this), 700))
+        .on('change blur', this.runCheck.bind(this));
+};
+
+Elem.prototype.runCheck = function () {
+    var isValid = this.validate(),
+
+        // The text displayed will be either the first item in the results
+        // that aren't `true` (errorText), or the item's single `validText`
+        nodText = head(filter(neq(true), this.getResults())) || this.validText;
+
+    // Set text in textHolder, and update the class of its group
+    if (nodText !== undefined) {
+        this.textHolder.html(nodText).fadeIn();
+    } else {
+        this.textHolder.hide();
+    }
+    this.group
+        .toggleClass("has-success", isValid)
+        .toggleClass("has-error", !isValid);
+
+    if (this.isValid !== isValid) {
+        this.isValid = isValid;
+        this.$el.trigger('toggle:isValid');
+    }
 };
 
 function Elems (metrics) {
@@ -555,7 +552,10 @@ Elems.prototype.attachCheckersFromExpandedMetrics = function (newItems) {
     each(function (expandedMetric) {
         expandedMetric.$els.each(function () {
             var item = find(compose(eq(this), dot('el')), items);
-            if (item) attachChecker(expandedMetric, item);
+            if (item) {
+                attachChecker(expandedMetric, item);
+                item.attachListeners();
+            }
         });
     }, this.expandMetrics(this.metrics));
 };
@@ -577,11 +577,9 @@ Elems.prototype.allAreValid = function () {
 // Main function called by user
 function nod (metrics, options) {
 
-    elems = new Elems(metrics);
+    var elems = new Elems(metrics);
 
-    each(attachListener, elems.items);
-
-    var submit = SubmitButton(options.submitBtn);
+    var submit = SubmitButton(elems, options.submitBtn);
 
     function addElement (el) {
         $(el).each(function () {

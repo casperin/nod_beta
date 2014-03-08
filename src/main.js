@@ -1,11 +1,9 @@
 // Main function called by user
 function nod (metrics, options) {
 
-    elems = new Elems(metrics);
+    var elems = new Elems(metrics);
 
-    each(attachListener, elems.items);
-
-    var submit = SubmitButton(options.submitBtn);
+    var submit = SubmitButton(elems, options.submitBtn);
 
     function addElement (el) {
         $(el).each(function () {

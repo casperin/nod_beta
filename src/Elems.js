@@ -67,7 +67,10 @@ Elems.prototype.attachCheckersFromExpandedMetrics = function (newItems) {
     each(function (expandedMetric) {
         expandedMetric.$els.each(function () {
             var item = find(compose(eq(this), dot('el')), items);
-            if (item) attachChecker(expandedMetric, item);
+            if (item) {
+                attachChecker(expandedMetric, item);
+                item.attachListeners();
+            }
         });
     }, this.expandMetrics(this.metrics));
 };

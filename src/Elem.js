@@ -12,15 +12,17 @@ function Elem (element) {
 
     this.validText = '';
 
+    this.isValid = null;
+
     this.validates = [];
 
     this.getValue = this.makeGetValue();
 
-    this.isValid = this.validate() || null;
-
 
     // Add the text holder into the dom
     this.addTextHolderToDom();
+
+    //this.attachListeners();
 }
 
 Elem.prototype.makeGetValue = function () {
@@ -63,6 +65,7 @@ Elem.prototype.addCheck = function (check, errorText) {
     this.checks.push(function (value) {
         return check(value) ? true : errorText;
     });
+    this.isValid = this.validate() || null;
 };
 
 Elem.prototype.setValidText = function (validText) {
@@ -72,4 +75,50 @@ Elem.prototype.setValidText = function (validText) {
 // String from user metrics such as 'exact-length:2'
 Elem.prototype.addValidate = function (validate) {
     this.validates = this.validates.concat(validate);
+};
+
+
+
+
+Elem.prototype.attachListeners = function () {
+    this.listenTo(this.$el);
+
+    // Prepare special case(s)
+    var validates_list = map(function(validateText) {
+            return validateText.split(":");
+        }, this.validates);
+
+    each( // Listen to the selector in "same-as" validates
+        compose(this.listenTo.bind(this), $, last),
+        filter(compose(eq("same-as"), head), validates_list)
+    );
+};
+
+Elem.prototype.listenTo = function ($el) {
+    $el .off()  // We only want to listen to it once
+        .on('keyup', debounce(this.runCheck.bind(this), 700))
+        .on('change blur', this.runCheck.bind(this));
+};
+
+Elem.prototype.runCheck = function () {
+    var isValid = this.validate(),
+
+        // The text displayed will be either the first item in the results
+        // that aren't `true` (errorText), or the item's single `validText`
+        nodText = head(filter(neq(true), this.getResults())) || this.validText;
+
+    // Set text in textHolder, and update the class of its group
+    if (nodText !== undefined) {
+        this.textHolder.html(nodText).fadeIn();
+    } else {
+        this.textHolder.hide();
+    }
+    this.group
+        .toggleClass("has-success", isValid)
+        .toggleClass("has-error", !isValid);
+
+    if (this.isValid !== isValid) {
+        this.isValid = isValid;
+        this.$el.trigger('toggle:isValid');
+    }
 };
