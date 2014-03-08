@@ -51,10 +51,19 @@ Elems.prototype.expandMetrics = map(function (metric) {
         metric.validate = [metric.validate];
         metric.errorText = [metric.errorText];
     }
+    var validates = map(function (valid) {
+            return any(eq(valid), SPECIAL_NEEDS) ? valid + ":" + metric.selector : valid;
+        }, metric.validate),
+
+        checks = map(function (validate) {
+            return Checker(validate, metric.selector);
+        }, validates);
+
+
     return {
         $els: $(metric.selector),
-        checks: map(Checker, metric.validate),
-        validate: metric.validate,
+        checks: checks,
+        validate: validates,
         validText: metric.validText,
         errorTexts: metric.errorText
     };

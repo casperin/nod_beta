@@ -1,6 +1,9 @@
 var log = console.log.bind(console);
 
 
+var SPECIAL_NEEDS = ['one-of', 'all-or-none'];
+
+
 //+ fnOf :: a -> fn -> b
 var fnOf = autoCurry(function (x, fn) {
         return fn(x);

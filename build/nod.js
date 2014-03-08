@@ -2,6 +2,9 @@
 'use strict';var log = console.log.bind(console);
 
 
+var SPECIAL_NEEDS = ['one-of', 'all-or-none'];
+
+
 //+ fnOf :: a -> fn -> b
 var fnOf = autoCurry(function (x, fn) {
         return fn(x);
@@ -200,21 +203,21 @@ function autoCurry(fn, numArgs) {
   };
 }
 
-function Checker (m) {
+function Checker (validate, selectors) {
 
     // User defined function for checking the validity of the input
-    if (!!(m && m.constructor && m.call && m.apply)) {
-        return m;
+    if (!!(validate && validate.constructor && validate.call && validate.apply)) {
+        return validate;
     }
 
 
-    if (m instanceof RegExp) {
+    if (validate instanceof RegExp) {
         return function (value) {
-            return m.test(value);
+            return validate.test(value);
         };
     }
 
-    var args  = m.split(':'),
+    var args  = validate.split(':'),
         type = args.shift(),
         checker = checkers[type];
 
@@ -257,6 +260,26 @@ var checkers = {
 
         return function (value) {
             return value === $(selector).val();
+        };
+    },
+
+    'one-of' : function (selectors) {
+        var $els = $(selectors);
+        return function () {
+            var results = $els.map(function () {
+                return this.value;
+            }).get().join('');
+            return !!results;
+        };
+    },
+
+    'all-or-none' : function (selectors) {
+        var $els = $(selectors);
+        return function () {
+            var results = $els.map(function () {
+                return !!this.value;
+            }).get();
+            return (all(eq(true), results) || all(eq(false), results));
         };
     },
 
@@ -317,10 +340,6 @@ var checkers = {
         };
     }
 };
-
-// These checkers share their checking functions
-checkers["one-of"] = checkers.presence;
-checkers["all-or-none"] = checkers.presence;
 
 // Backwards compatability
 checkers["min-num"] = checkers.min;
@@ -446,18 +465,23 @@ Elem.prototype.attachListeners = function () {
     // Prepare special case(s)
     var validates_list = map(function(validateText) {
             return validateText.split(":");
-        }, this.validates);
+        }, this.validates),
 
-    each( // Listen to the selector in "same-as" validates
-        compose(this.listenTo.bind(this), $, last),
-        filter(compose(eq("same-as"), head), validates_list)
-    );
+        special_needs_list = filter(function (arr) {
+            return any(eq(arr[0]), SPECIAL_NEEDS);
+        }, validates_list);
+
+    each(compose(this.listenTo.bind(this), $, last), special_needs_list);
+
 };
 
 Elem.prototype.listenTo = function ($el) {
-    $el .off()  // We only want to listen to it once
-        .on('keyup', debounce(this.runCheck.bind(this), 700))
-        .on('change blur', this.runCheck.bind(this));
+    var runCheck = this.runCheck.bind(this);
+    $el.each(function () {
+        $(this)
+            .on('keyup', debounce(runCheck, 700))
+            .on('change blur', runCheck);
+    });
 };
 
 Elem.prototype.runCheck = function () {
@@ -536,10 +560,19 @@ Elems.prototype.expandMetrics = map(function (metric) {
         metric.validate = [metric.validate];
         metric.errorText = [metric.errorText];
     }
+    var validates = map(function (valid) {
+            return any(eq(valid), SPECIAL_NEEDS) ? valid + ":" + metric.selector : valid;
+        }, metric.validate),
+
+        checks = map(function (validate) {
+            return Checker(validate, metric.selector);
+        }, validates);
+
+
     return {
         $els: $(metric.selector),
-        checks: map(Checker, metric.validate),
-        validate: metric.validate,
+        checks: checks,
+        validate: validates,
         validText: metric.validText,
         errorTexts: metric.errorText
     };

@@ -94,10 +94,10 @@
 
         var metrics = [
             {
-                selector: ".one",
-                validate: ["same-as:.two", "max-length:2"],
-                validText: "YES integer",
-                errorText: ["No same", "no presence"]
+                selector: ".one, .two",
+                validate: "all-or-none",
+                validText: "YES all or none",
+                errorText: "NO all or none"
                 /*
             },
             {

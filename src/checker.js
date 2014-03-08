@@ -1,18 +1,18 @@
-function Checker (m) {
+function Checker (validate, selectors) {
 
     // User defined function for checking the validity of the input
-    if (!!(m && m.constructor && m.call && m.apply)) {
-        return m;
+    if (!!(validate && validate.constructor && validate.call && validate.apply)) {
+        return validate;
     }
 
 
-    if (m instanceof RegExp) {
+    if (validate instanceof RegExp) {
         return function (value) {
-            return m.test(value);
+            return validate.test(value);
         };
     }
 
-    var args  = m.split(':'),
+    var args  = validate.split(':'),
         type = args.shift(),
         checker = checkers[type];
 
@@ -55,6 +55,26 @@ var checkers = {
 
         return function (value) {
             return value === $(selector).val();
+        };
+    },
+
+    'one-of' : function (selectors) {
+        var $els = $(selectors);
+        return function () {
+            var results = $els.map(function () {
+                return this.value;
+            }).get().join('');
+            return !!results;
+        };
+    },
+
+    'all-or-none' : function (selectors) {
+        var $els = $(selectors);
+        return function () {
+            var results = $els.map(function () {
+                return !!this.value;
+            }).get();
+            return (all(eq(true), results) || all(eq(false), results));
         };
     },
 
@@ -115,10 +135,6 @@ var checkers = {
         };
     }
 };
-
-// These checkers share their checking functions
-checkers["one-of"] = checkers.presence;
-checkers["all-or-none"] = checkers.presence;
 
 // Backwards compatability
 checkers["min-num"] = checkers.min;
