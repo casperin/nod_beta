@@ -51,8 +51,9 @@ Elems.prototype.expandMetrics = map(function (metric) {
         metric.validate = [metric.validate];
         metric.errorText = [metric.errorText];
     }
+
     var validates = map(function (valid) {
-            return any(eq(valid), SPECIAL_NEEDS) ? valid + ":" + metric.selector : valid;
+            return any(eq(valid), ['one-of', 'all-or-none']) ? valid + ":" + metric.selector : valid;
         }, metric.validate),
 
         checks = map(function (validate) {

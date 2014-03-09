@@ -30,6 +30,13 @@ var checkers = {
         };
     },
 
+    'presence-if' : function (selector, checkValue) {
+        var checkElement = $(selector);
+        return function (value) {
+            return checkElement.val() === checkValue ? !!value : true;
+        };
+    },
+
     'empty' : function () {
         return function (value) {
             return value.length === 0 || !!(void 0);
@@ -49,19 +56,20 @@ var checkers = {
     },
 
     'same-as' : function (selector) {
-        if ($(selector).length !== 1) {
+        var checkElement = $(selector);
+        if (checkElement.length !== 1) {
             throw new Error('same-as selector must target one and only one element');
         }
 
         return function (value) {
-            return value === $(selector).val();
+            return value === checkElement.val();
         };
     },
 
     'one-of' : function (selectors) {
-        var $els = $(selectors);
+        var checkElement = $(selectors);
         return function () {
-            var results = $els.map(function () {
+            var results = checkElement.map(function () {
                 return this.value;
             }).get().join('');
             return !!results;
@@ -69,9 +77,9 @@ var checkers = {
     },
 
     'all-or-none' : function (selectors) {
-        var $els = $(selectors);
+        var checkElement = $(selectors);
         return function () {
-            var results = $els.map(function () {
+            var results = checkElement.map(function () {
                 return !!this.value;
             }).get();
             return (all(eq(true), results) || all(eq(false), results));

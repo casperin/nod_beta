@@ -83,16 +83,17 @@ Elem.prototype.addValidate = function (validate) {
 Elem.prototype.attachListeners = function () {
     this.listenTo(this.$el);
 
-    // Prepare special case(s)
-    var validates_list = map(function(validateText) {
-            return validateText.split(":");
-        }, this.validates),
+    var contains_selectors = ['presence-if', 'same-as', 'one-of', 'all-or-none'],
 
-        special_needs_list = filter(function (arr) {
-            return any(eq(arr[0]), SPECIAL_NEEDS);
-        }, validates_list);
+        val_list = foldl(function (memo, validate) {
+            var v_arr = validate.split(':');
+            if (any(eq(v_arr[0]), contains_selectors)) {
+                memo.push($(v_arr[1]));
+            }
+            return memo;
+        }, [], this.validates);
 
-    each(compose(this.listenTo.bind(this), $, last), special_needs_list);
+    each(this.listenTo.bind(this), val_list);
 
 };
 
@@ -100,8 +101,8 @@ Elem.prototype.listenTo = function ($el) {
     var runCheck = this.runCheck.bind(this);
     $el.each(function () {
         $(this)
-            .on('keyup', debounce(runCheck, 700))
-            .on('change blur', runCheck);
+            .on('keyup.nod', debounce(runCheck, 700))
+            .on('change.nod blur.nod', runCheck);
     });
 };
 

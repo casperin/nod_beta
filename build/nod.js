@@ -2,9 +2,6 @@
 'use strict';var log = console.log.bind(console);
 
 
-var SPECIAL_NEEDS = ['one-of', 'all-or-none'];
-
-
 //+ fnOf :: a -> fn -> b
 var fnOf = autoCurry(function (x, fn) {
         return fn(x);
@@ -60,6 +57,13 @@ var fnOf = autoCurry(function (x, fn) {
             if (items.hasOwnProperty(k)) result[key] = fn(items[key]);
           return result;
         }
+    }),
+
+    foldl = autoCurry(function (fn, memo, arr) {
+        var i = -1;
+        while (++i < arr.length)
+            memo = fn(memo, arr[i]);
+        return memo;
     }),
 
     all = autoCurry(function (fn, arr) {
@@ -235,6 +239,13 @@ var checkers = {
         };
     },
 
+    'presence-if' : function (selector, checkValue) {
+        var checkElement = $(selector);
+        return function (value) {
+            return checkElement.val() === checkValue ? !!value : true;
+        };
+    },
+
     'empty' : function () {
         return function (value) {
             return value.length === 0 || !!(void 0);
@@ -254,19 +265,20 @@ var checkers = {
     },
 
     'same-as' : function (selector) {
-        if ($(selector).length !== 1) {
+        var checkElement = $(selector);
+        if (checkElement.length !== 1) {
             throw new Error('same-as selector must target one and only one element');
         }
 
         return function (value) {
-            return value === $(selector).val();
+            return value === checkElement.val();
         };
     },
 
     'one-of' : function (selectors) {
-        var $els = $(selectors);
+        var checkElement = $(selectors);
         return function () {
-            var results = $els.map(function () {
+            var results = checkElement.map(function () {
                 return this.value;
             }).get().join('');
             return !!results;
@@ -274,9 +286,9 @@ var checkers = {
     },
 
     'all-or-none' : function (selectors) {
-        var $els = $(selectors);
+        var checkElement = $(selectors);
         return function () {
-            var results = $els.map(function () {
+            var results = checkElement.map(function () {
                 return !!this.value;
             }).get();
             return (all(eq(true), results) || all(eq(false), results));
@@ -462,16 +474,17 @@ Elem.prototype.addValidate = function (validate) {
 Elem.prototype.attachListeners = function () {
     this.listenTo(this.$el);
 
-    // Prepare special case(s)
-    var validates_list = map(function(validateText) {
-            return validateText.split(":");
-        }, this.validates),
+    var contains_selectors = ['presence-if', 'same-as', 'one-of', 'all-or-none'],
 
-        special_needs_list = filter(function (arr) {
-            return any(eq(arr[0]), SPECIAL_NEEDS);
-        }, validates_list);
+        val_list = foldl(function (memo, validate) {
+            var v_arr = validate.split(':');
+            if (any(eq(v_arr[0]), contains_selectors)) {
+                memo.push($(v_arr[1]));
+            }
+            return memo;
+        }, [], this.validates);
 
-    each(compose(this.listenTo.bind(this), $, last), special_needs_list);
+    each(this.listenTo.bind(this), val_list);
 
 };
 
@@ -479,8 +492,8 @@ Elem.prototype.listenTo = function ($el) {
     var runCheck = this.runCheck.bind(this);
     $el.each(function () {
         $(this)
-            .on('keyup', debounce(runCheck, 700))
-            .on('change blur', runCheck);
+            .on('keyup.nod', debounce(runCheck, 700))
+            .on('change.nod blur.nod', runCheck);
     });
 };
 
@@ -560,8 +573,9 @@ Elems.prototype.expandMetrics = map(function (metric) {
         metric.validate = [metric.validate];
         metric.errorText = [metric.errorText];
     }
+
     var validates = map(function (valid) {
-            return any(eq(valid), SPECIAL_NEEDS) ? valid + ":" + metric.selector : valid;
+            return any(eq(valid), ['one-of', 'all-or-none']) ? valid + ":" + metric.selector : valid;
         }, metric.validate),
 
         checks = map(function (validate) {

@@ -94,18 +94,16 @@
 
         var metrics = [
             {
-                selector: ".one, .two",
-                validate: "all-or-none",
-                validText: "YES all or none",
-                errorText: "NO all or none"
-                /*
+                selector: ".one",
+                validate: ["max-length:2", "presence-if:.select:foo"],
+                validText: "all or none",
+                errorText: ["max", "presence-if"]
             },
             {
-                selector: ".one, .two",
-                validate: "divbytwo",
-                validText: "YES div by two",
-                errorText: "No div by two"
-            */
+                selector: ".two",
+                validate: "same-as:.one",
+                validText: "same as",
+                errorText: "same as"
             }
         ];
 

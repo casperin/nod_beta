@@ -1,9 +1,6 @@
 var log = console.log.bind(console);
 
 
-var SPECIAL_NEEDS = ['one-of', 'all-or-none'];
-
-
 //+ fnOf :: a -> fn -> b
 var fnOf = autoCurry(function (x, fn) {
         return fn(x);
@@ -59,6 +56,13 @@ var fnOf = autoCurry(function (x, fn) {
             if (items.hasOwnProperty(k)) result[key] = fn(items[key]);
           return result;
         }
+    }),
+
+    foldl = autoCurry(function (fn, memo, arr) {
+        var i = -1;
+        while (++i < arr.length)
+            memo = fn(memo, arr[i]);
+        return memo;
     }),
 
     all = autoCurry(function (fn, arr) {
