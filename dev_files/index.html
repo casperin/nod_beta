@@ -100,8 +100,8 @@
                 errorText: ["max", "presence-if"]
             },
             {
-                selector: ".two",
-                validate: "same-as:.one",
+                selector: ".one, .two",
+                validate: "all-or-none",
                 validText: "same as",
                 errorText: "same as"
             }

@@ -469,23 +469,26 @@ Elem.prototype.addValidate = function (validate) {
 };
 
 
+// Helper function
+Elem.prototype.getOtherElements = foldl(function (memo, validate) {
+    var contains_selectors = ['presence-if', 'same-as', 'one-of', 'all-or-none'],
+        v_arr = validate.split(':');
+
+    if (any(eq(v_arr[0]), contains_selectors)) {
+        memo.push($(v_arr[1]));
+    }
+
+    return memo;
+}, []);
+
 
 
 Elem.prototype.attachListeners = function () {
     this.listenTo(this.$el);
 
-    var contains_selectors = ['presence-if', 'same-as', 'one-of', 'all-or-none'],
-
-        val_list = foldl(function (memo, validate) {
-            var v_arr = validate.split(':');
-            if (any(eq(v_arr[0]), contains_selectors)) {
-                memo.push($(v_arr[1]));
-            }
-            return memo;
-        }, [], this.validates);
-
-    each(this.listenTo.bind(this), val_list);
-
+    // Certain checkers rely on being run with other elements are changed too
+    // like "same-as" and "presence-if"
+    each(this.listenTo.bind(this), this.getOtherElements(this.validates));
 };
 
 Elem.prototype.listenTo = function ($el) {
