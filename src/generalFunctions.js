@@ -19,15 +19,6 @@ var fnOf = autoCurry(function (x, fn) {
         return result;
     }),
 
-    intersection = autoCurry(function (arr, arr2) {
-        var result = [], i = -1;
-        while (++i < arr.length) {
-            if (arr2.indexOf(arr[i]) !== -1)
-                result.push(arr[i]);
-        }
-        return result;
-    }),
-
     each = autoCurry(function (fn, items) {
         if (items.forEach) return items.forEach(fn);
         if (items.length === +items.length) {
@@ -134,6 +125,18 @@ var fnOf = autoCurry(function (x, fn) {
 
     dot = autoCurry(function (prop, obj) {
         return obj[prop];
+    }),
+
+    extend = autoCurry(function (obj, obj2) {
+        var result = {}, i = -1, objs = [obj, obj2];
+        while (++i < 2) {
+            for (var key in objs[i]) {
+                if (objs[i].hasOwnProperty(key)) {
+                    result[key] = objs[i][key];
+                }
+            }
+        }
+        return result;
     }),
 
     debounce = function(func, wait, immediate) {

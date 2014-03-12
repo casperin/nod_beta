@@ -1,11 +1,8 @@
 var src = [
     // 'src/cherries.js',  // Pick the ones you need over into generalFunctions.js
     'src/generalFunctions.js',
-    //'src/config.js',
     'src/checker.js',
-    'src/submitButton.js',
-    'src/form.js',
-    //'src/listener.js',
+    'src/Form.js',
     'src/Elem.js',
     'src/Elems.js',
     'src/main.js'

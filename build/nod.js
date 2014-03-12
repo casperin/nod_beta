@@ -20,15 +20,6 @@ var fnOf = autoCurry(function (x, fn) {
         return result;
     }),
 
-    intersection = autoCurry(function (arr, arr2) {
-        var result = [], i = -1;
-        while (++i < arr.length) {
-            if (arr2.indexOf(arr[i]) !== -1)
-                result.push(arr[i]);
-        }
-        return result;
-    }),
-
     each = autoCurry(function (fn, items) {
         if (items.forEach) return items.forEach(fn);
         if (items.length === +items.length) {
@@ -135,6 +126,18 @@ var fnOf = autoCurry(function (x, fn) {
 
     dot = autoCurry(function (prop, obj) {
         return obj[prop];
+    }),
+
+    extend = autoCurry(function (obj, obj2) {
+        var result = {}, i = -1, objs = [obj, obj2];
+        while (++i < 2) {
+            for (var key in objs[i]) {
+                if (objs[i].hasOwnProperty(key)) {
+                    result[key] = objs[i][key];
+                }
+            }
+        }
+        return result;
     }),
 
     debounce = function(func, wait, immediate) {
@@ -365,56 +368,53 @@ var regexps = {
     "email" : /^([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x22([^\x0d\x22\x5c\x80-\xff]|\x5c[\x00-\x7f])*\x22))*\x40([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d)(\x2e([^\x00-\x20\x22\x28\x29\x2c\x2e\x3a-\x3c\x3e\x40\x5b-\x5d\x7f-\xff]+|\x5b([^\x0d\x5b-\x5d\x80-\xff]|\x5c[\x00-\x7f])*\x5d))*$/
 };
 
-function SubmitButton (elems, selector) {
-    var btn = $(selector),
-        $els = [];
+function Form (opt) {
 
-    function listenTo ($el) {
-        $els.push( $el.on('toggle:isValid', toggleBtn) );
-    }
+    this.$form = $(config.form);
 
-    function toggleBtn () {
-        var errors = !elems.allAreValid();
-        //log(errors);
-        btn.prop('disabled', errors).toggleClass('disabled', errors);
-    }
+    this.$submit = $(config.submitBtn);
 
-    function dispose () {
-        each(function ($el) { $el.off('toggle:isValid'); }, $els);
-        btn.prop('disabled', false).toggleClass('disabled', false);
-    }
+    this.$els = [];
+
+    this.formListener();
 
     // Listen to each element and enable/disable submit button
-    each(compose(listenTo, dot('$el')), elems.items);
+    each(compose(this.add, dot('$el')).bind(this), elems.items);
 
     // Toggle button from the beginning
-    toggleBtn();
-
-    return {
-        add: listenTo,
-        dispose: dispose
-    };
+    this.toggleBtn();
 }
 
-function Form (elems, form) {
-    var $form = $(form);
+Form.prototype.add = function ($el) {
+    this.$els.push( $el.on('toggle:isValid', this.toggleBtn.bind(this)) );
+};
 
-    $form.on('submit.nod', function (event) {
+Form.prototype.toggleBtn = function () {
+    var errors = !elems.allAreValid();
+    this.$submit.prop('disabled', errors).toggleClass('disabled', errors);
+};
+
+
+Form.prototype.formListener = function () {
+    this.$form.on('submit.nod', function (event) {
         if(!elems.allAreValid()) {
             event.preventDefault();
             elems.firstInputWithError().trigger('change').focus();
         }
     });
+};
 
-    function dispose () {
-        $form.off('submit.nod');
-    }
 
-    return {
-        dispose: dispose
-    };
-}
+// Dispose everything (removes listeners)
+Form.prototype.dispose = function () {
+    this.$form.off('submit.nod');
 
+    each(function ($el) { $el.off('toggle:isValid'); }, this.$els);
+
+    this.$submit
+        .prop('disabled', false)
+        .toggleClass('disabled', false);
+};
 
 function Elem (element) {
 
@@ -422,9 +422,9 @@ function Elem (element) {
 
     this.$el = $(this.el);
 
-    this.group = this.$el.parents(".form-group");
+    this.group = this.$el.parents(config.groupSelector);
 
-    this.textHolder = $('<span/>', {'class':'help-block nod-text'}).hide();
+    this.textHolder = $('<span/>', {'class': config.helpTextClass + ' ' + config.helpTextClassId}).hide();
 
     this.checks = [];
 
@@ -463,7 +463,7 @@ Elem.prototype.getResults = function () {
 
 // Only run as part of the constructor
 Elem.prototype.addTextHolderToDom = function () {
-    var previousTextHolder = this.group.find('.nod-text'),
+    var previousTextHolder = this.group.find('.'+config.helpTextClassId),
         type = this.$el.attr('type');
 
     if (type === 'radio' && previousTextHolder.length) {
@@ -502,7 +502,7 @@ Elem.prototype.addValidate = function (validate) {
 Elem.prototype.getOtherElements = foldl(function (memo, validate) {
     if (typeof validate === 'function') return memo;
 
-    var contains_selectors = ['presence-if', 'same-as', 'one-of', 'all-or-none'],
+    var contains_selectors = config.containsSelectors,
         v_arr = validate.split(':');
 
     if (any(eq(v_arr[0]), contains_selectors)) {
@@ -546,8 +546,8 @@ Elem.prototype.runCheck = function () {
         this.textHolder.hide();
     }
     this.group
-        .toggleClass("has-success", isValid)
-        .toggleClass("has-error", !isValid);
+        .toggleClass(config.groupValidClass, isValid)
+        .toggleClass(config.groupErrorClass, !isValid);
 
     if (this.isValid !== isValid) {
         this.isValid = isValid;
@@ -562,7 +562,9 @@ Elem.prototype.dispose = function () {
     // make sure everything in nod considers the field valid
     //this.checks = [function() {return true;}];
     each(function (el) { el.off('keyup.nod change.nod blur.nod'); }, this.listeningTo);
-    this.group.removeClass("has-error").removeClass('has-success');
+    this.group
+        .removeClass(config.groupErrorClass)
+        .removeClass(config.groupValidClass);
 };
 
 function Elems (metrics) {
@@ -622,7 +624,7 @@ Elems.prototype.expandMetrics = map(function (metric) {
     }
 
     var validates = map(function (valid) {
-            return any(eq(valid), ['one-of', 'all-or-none']) ? valid + ":" + metric.selector : valid;
+            return any(eq(valid), config.needsToKnowSisters) ? valid + ":" + metric.selector : valid;
         }, metric.validate),
 
         checks = map(function (validate) {
@@ -670,27 +672,40 @@ Elems.prototype.firstInputWithError = function () {
     return find(compose(neq(true), dot('isValid')), this.items).$el;
 };
 
+var elems,
+    form,
+    config,
+    defaultConfig = {
+        groupSelector: '.form-group',
+        groupValidClass: "has-success",
+        groupErrorClass: "has-error",
+        helpTextClass: 'help-block',
+        helpTextClassId: 'nod-text',
+        containsSelectors: ['presence-if', 'same-as', 'one-of', 'all-or-none'],
+        needsToKnowSisters: ['one-of', 'all-or-none']
+    };
+
+
 // Main function called by user
-function nod (metrics, options) {
+function nod (metrics, opt) {
 
-    var elems = new Elems(metrics);
+    config = extend(defaultConfig, opt);
 
-    var submit = SubmitButton(elems, options.submitBtn);
+    elems = new Elems(metrics);
 
-    var form = Form(elems, options.form);
+    form = new Form();
 
     function addElement (el) {
         $(el).each(function () {
             var item = elems.add.call(elems, this);
             if (!item) return;
             each(attachListener, [item]);
-            submit.add(el);
+            form.add(el);
         });
     }
 
     function dispose () {
         elems.dispose();
-        submit.dispose();
         form.dispose();
     }
 

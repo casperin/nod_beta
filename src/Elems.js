@@ -55,7 +55,7 @@ Elems.prototype.expandMetrics = map(function (metric) {
     }
 
     var validates = map(function (valid) {
-            return any(eq(valid), ['one-of', 'all-or-none']) ? valid + ":" + metric.selector : valid;
+            return any(eq(valid), config.needsToKnowSisters) ? valid + ":" + metric.selector : valid;
         }, metric.validate),
 
         checks = map(function (validate) {

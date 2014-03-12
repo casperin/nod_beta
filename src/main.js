@@ -1,24 +1,37 @@
+var elems,
+    form,
+    config,
+    defaultConfig = {
+        groupSelector: '.form-group',
+        groupValidClass: "has-success",
+        groupErrorClass: "has-error",
+        helpTextClass: 'help-block',
+        helpTextClassId: 'nod-text',
+        containsSelectors: ['presence-if', 'same-as', 'one-of', 'all-or-none'],
+        needsToKnowSisters: ['one-of', 'all-or-none']
+    };
+
+
 // Main function called by user
-function nod (metrics, options) {
+function nod (metrics, opt) {
 
-    var elems = new Elems(metrics);
+    config = extend(defaultConfig, opt);
 
-    var submit = SubmitButton(elems, options.submitBtn);
+    elems = new Elems(metrics);
 
-    var form = Form(elems, options.form);
+    form = new Form();
 
     function addElement (el) {
         $(el).each(function () {
             var item = elems.add.call(elems, this);
             if (!item) return;
             each(attachListener, [item]);
-            submit.add(el);
+            form.add(el);
         });
     }
 
     function dispose () {
         elems.dispose();
-        submit.dispose();
         form.dispose();
     }
 

@@ -4,9 +4,9 @@ function Elem (element) {
 
     this.$el = $(this.el);
 
-    this.group = this.$el.parents(".form-group");
+    this.group = this.$el.parents(config.groupSelector);
 
-    this.textHolder = $('<span/>', {'class':'help-block nod-text'}).hide();
+    this.textHolder = $('<span/>', {'class': config.helpTextClass + ' ' + config.helpTextClassId}).hide();
 
     this.checks = [];
 
@@ -45,7 +45,7 @@ Elem.prototype.getResults = function () {
 
 // Only run as part of the constructor
 Elem.prototype.addTextHolderToDom = function () {
-    var previousTextHolder = this.group.find('.nod-text'),
+    var previousTextHolder = this.group.find('.'+config.helpTextClassId),
         type = this.$el.attr('type');
 
     if (type === 'radio' && previousTextHolder.length) {
@@ -84,7 +84,7 @@ Elem.prototype.addValidate = function (validate) {
 Elem.prototype.getOtherElements = foldl(function (memo, validate) {
     if (typeof validate === 'function') return memo;
 
-    var contains_selectors = ['presence-if', 'same-as', 'one-of', 'all-or-none'],
+    var contains_selectors = config.containsSelectors,
         v_arr = validate.split(':');
 
     if (any(eq(v_arr[0]), contains_selectors)) {
@@ -128,8 +128,8 @@ Elem.prototype.runCheck = function () {
         this.textHolder.hide();
     }
     this.group
-        .toggleClass("has-success", isValid)
-        .toggleClass("has-error", !isValid);
+        .toggleClass(config.groupValidClass, isValid)
+        .toggleClass(config.groupErrorClass, !isValid);
 
     if (this.isValid !== isValid) {
         this.isValid = isValid;
@@ -144,5 +144,7 @@ Elem.prototype.dispose = function () {
     // make sure everything in nod considers the field valid
     //this.checks = [function() {return true;}];
     each(function (el) { el.off('keyup.nod change.nod blur.nod'); }, this.listeningTo);
-    this.group.removeClass("has-error").removeClass('has-success');
+    this.group
+        .removeClass(config.groupErrorClass)
+        .removeClass(config.groupValidClass);
 };
