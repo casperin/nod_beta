@@ -500,6 +500,8 @@ Elem.prototype.addValidate = function (validate) {
 
 // Helper function
 Elem.prototype.getOtherElements = foldl(function (memo, validate) {
+    if (typeof validate === 'function') return memo;
+
     var contains_selectors = ['presence-if', 'same-as', 'one-of', 'all-or-none'],
         v_arr = validate.split(':');
 
@@ -614,7 +616,7 @@ Elems.prototype.disposeItem = function (item) {
 };
 
 Elems.prototype.expandMetrics = map(function (metric) {
-    if (typeof metric.validate === 'string') {
+    if (typeof metric.validate !== 'object') {
         metric.validate = [metric.validate];
         metric.errorText = [metric.errorText];
     }
@@ -626,7 +628,6 @@ Elems.prototype.expandMetrics = map(function (metric) {
         checks = map(function (validate) {
             return Checker(validate, metric.selector);
         }, validates);
-
 
     return {
         $els: $(metric.selector),
@@ -695,7 +696,7 @@ function nod (metrics, options) {
 
     return {
         add         : addElement,
-        remove      : compose(elems.remove.bind(elems), $),
+        remove      : elems.remove.bind(elems),
         checkers    : checkers,
         allValid    : elems.allAreValid.bind(elems),
         dispose     : dispose

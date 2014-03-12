@@ -82,6 +82,8 @@ Elem.prototype.addValidate = function (validate) {
 
 // Helper function
 Elem.prototype.getOtherElements = foldl(function (memo, validate) {
+    if (typeof validate === 'function') return memo;
+
     var contains_selectors = ['presence-if', 'same-as', 'one-of', 'all-or-none'],
         v_arr = validate.split(':');
 

@@ -92,12 +92,20 @@
             };
         }
 
+        function chk (value) {
+            return value%3 === 0;
+        }
+
+        var getFn = function (value) {
+            $.get('resp.php', value);
+        };
+
         var metrics = [
             {
-                selector: ".one, .two",
-                validate: "presence",
-                validText: "presence",
-                errorText: "presence"
+                selector: ".one",
+                validate: chk,
+                validText: "yes presence",
+                errorText: "no presence"
             }
         ];
 
@@ -107,10 +115,10 @@
             form: "#form"
         });
 
-        n.remove($('.two')[0]);
         /*
         n.dispose();
 
+        n.remove($('.two')[0]);
 
         $(".two").addClass("one");
 

@@ -49,7 +49,7 @@ Elems.prototype.disposeItem = function (item) {
 };
 
 Elems.prototype.expandMetrics = map(function (metric) {
-    if (typeof metric.validate === 'string') {
+    if (typeof metric.validate !== 'object') {
         metric.validate = [metric.validate];
         metric.errorText = [metric.errorText];
     }
@@ -61,7 +61,6 @@ Elems.prototype.expandMetrics = map(function (metric) {
         checks = map(function (validate) {
             return Checker(validate, metric.selector);
         }, validates);
-
 
     return {
         $els: $(metric.selector),
