@@ -31,8 +31,10 @@ Elems.prototype.addElement = function (element) {
 };
 
 Elems.prototype.remove = function (element) {
-    var item = find(compose(eq(el), dot('el')), this.items);
-    if (item) this.disposeItem(item);
+    each(function (el) {
+        var item = find(compose(eq(el), dot('el')), this.items);
+        this.disposeItem.call(this, item);
+    }.bind(this), $(element));
 };
 
 Elems.prototype.dispose = function () {

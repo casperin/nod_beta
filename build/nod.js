@@ -596,8 +596,10 @@ Elems.prototype.addElement = function (element) {
 };
 
 Elems.prototype.remove = function (element) {
-    var item = find(compose(eq(el), dot('el')), this.items);
-    if (item) this.disposeItem(item);
+    each(function (el) {
+        var item = find(compose(eq(el), dot('el')), this.items);
+        this.disposeItem.call(this, item);
+    }.bind(this), $(element));
 };
 
 Elems.prototype.dispose = function () {
@@ -685,12 +687,6 @@ function nod (metrics, options) {
         });
     }
 
-    function removeElement (el) {
-        el = $(el);
-        el.each(function () { elems.remove(this); });
-        el.off();
-    }
-
     function dispose () {
         elems.dispose();
         submit.dispose();
@@ -699,7 +695,7 @@ function nod (metrics, options) {
 
     return {
         add         : addElement,
-        remove      : removeElement,
+        remove      : compose(elems.remove.bind(elems), $),
         checkers    : checkers,
         allValid    : elems.allAreValid.bind(elems),
         dispose     : dispose

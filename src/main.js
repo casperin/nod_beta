@@ -16,12 +16,6 @@ function nod (metrics, options) {
         });
     }
 
-    function removeElement (el) {
-        el = $(el);
-        el.each(function () { elems.remove(this); });
-        el.off();
-    }
-
     function dispose () {
         elems.dispose();
         submit.dispose();
@@ -30,7 +24,7 @@ function nod (metrics, options) {
 
     return {
         add         : addElement,
-        remove      : removeElement,
+        remove      : elems.remove.bind(elems),
         checkers    : checkers,
         allValid    : elems.allAreValid.bind(elems),
         dispose     : dispose

@@ -94,16 +94,10 @@
 
         var metrics = [
             {
-                selector: ".one",
-                validate: ["max-length:2", "presence-if:.select:foo"],
-                validText: "all or none",
-                errorText: ["max", "presence-if"]
-            },
-            {
                 selector: ".one, .two",
-                validate: "all-or-none",
-                validText: "same as",
-                errorText: "same as"
+                validate: "presence",
+                validText: "presence",
+                errorText: "presence"
             }
         ];
 
@@ -113,10 +107,10 @@
             form: "#form"
         });
 
+        n.remove($('.two')[0]);
         /*
         n.dispose();
 
-        n.remove($('.two')[0]);
 
         $(".two").addClass("one");
 
