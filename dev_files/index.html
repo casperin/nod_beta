@@ -29,7 +29,7 @@
 
     <div class="container">
         <h1>Qick n dirty nod tests</h1>
-        <form class="form-horizontal" action="">
+        <form class="form-horizontal" action="" id="form">
             <div class="form-group">
                 <label for="a" class="col-sm-2 control-label">adsdf</label>
                 <div class="col-sm-3">
@@ -108,9 +108,14 @@
         ];
 
 
-        var n = nod(metrics, {submitBtn: "#submitBtn"});
+        var n = nod(metrics, {
+            submitBtn: "#submitBtn",
+            form: "#form"
+        });
 
         /*
+        n.dispose();
+
         n.remove($('.two')[0]);
 
         $(".two").addClass("one");
@@ -120,6 +125,5 @@
 
 
     </script>
-    
 </body>
 </html>

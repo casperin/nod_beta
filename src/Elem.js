@@ -16,6 +16,8 @@ function Elem (element) {
 
     this.validates = [];
 
+    this.listeningTo = [];
+
     this.getValue = this.makeGetValue();
 
 
@@ -101,11 +103,12 @@ Elem.prototype.attachListeners = function () {
 };
 
 Elem.prototype.listenTo = function ($el) {
-    var runCheck = this.runCheck.bind(this);
+    var runCheck = this.runCheck.bind(this),
+        listeningTo = this.listeningTo;
     $el.each(function () {
-        $(this)
-            .on('keyup.nod', debounce(runCheck, 700))
-            .on('change.nod blur.nod', runCheck);
+        var el = $(this);
+        el.on('keyup.nod', debounce(runCheck, 700)).on('change.nod blur.nod', runCheck);
+        listeningTo.push(el);
     });
 };
 
@@ -130,4 +133,14 @@ Elem.prototype.runCheck = function () {
         this.isValid = isValid;
         this.$el.trigger('toggle:isValid');
     }
+};
+
+
+Elem.prototype.dispose = function () {
+    // remove any (in)valid text
+    this.textHolder.remove();
+    // make sure everything in nod considers the field valid
+    //this.checks = [function() {return true;}];
+    each(function (el) { el.off('keyup.nod change.nod blur.nod'); }, this.listeningTo);
+    this.group.removeClass("has-error").removeClass('has-success');
 };

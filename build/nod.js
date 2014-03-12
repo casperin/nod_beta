@@ -366,16 +366,22 @@ var regexps = {
 };
 
 function SubmitButton (elems, selector) {
-    var btn = $(selector);
+    var btn = $(selector),
+        $els = [];
 
     function listenTo ($el) {
-        $el.on('toggle:isValid', toggleBtn);
+        $els.push( $el.on('toggle:isValid', toggleBtn) );
     }
 
     function toggleBtn () {
         var errors = !elems.allAreValid();
         //log(errors);
         btn.prop('disabled', errors).toggleClass('disabled', errors);
+    }
+
+    function dispose () {
+        each(function ($el) { $el.off('toggle:isValid'); }, $els);
+        btn.prop('disabled', false).toggleClass('disabled', false);
     }
 
     // Listen to each element and enable/disable submit button
@@ -385,17 +391,28 @@ function SubmitButton (elems, selector) {
     toggleBtn();
 
     return {
-        add: listenTo
+        add: listenTo,
+        dispose: dispose
     };
 }
 
 function Form (elems, form) {
-    $(form).on('submit', function (event) {
+    var $form = $(form);
+
+    $form.on('submit.nod', function (event) {
         if(!elems.allAreValid()) {
             event.preventDefault();
             elems.firstInputWithError().trigger('change').focus();
         }
     });
+
+    function dispose () {
+        $form.off('submit.nod');
+    }
+
+    return {
+        dispose: dispose
+    };
 }
 
 
@@ -416,6 +433,8 @@ function Elem (element) {
     this.isValid = null;
 
     this.validates = [];
+
+    this.listeningTo = [];
 
     this.getValue = this.makeGetValue();
 
@@ -502,11 +521,12 @@ Elem.prototype.attachListeners = function () {
 };
 
 Elem.prototype.listenTo = function ($el) {
-    var runCheck = this.runCheck.bind(this);
+    var runCheck = this.runCheck.bind(this),
+        listeningTo = this.listeningTo;
     $el.each(function () {
-        $(this)
-            .on('keyup.nod', debounce(runCheck, 700))
-            .on('change.nod blur.nod', runCheck);
+        var el = $(this);
+        el.on('keyup.nod', debounce(runCheck, 700)).on('change.nod blur.nod', runCheck);
+        listeningTo.push(el);
     });
 };
 
@@ -531,6 +551,16 @@ Elem.prototype.runCheck = function () {
         this.isValid = isValid;
         this.$el.trigger('toggle:isValid');
     }
+};
+
+
+Elem.prototype.dispose = function () {
+    // remove any (in)valid text
+    this.textHolder.remove();
+    // make sure everything in nod considers the field valid
+    //this.checks = [function() {return true;}];
+    each(function (el) { el.off('keyup.nod change.nod blur.nod'); }, this.listeningTo);
+    this.group.removeClass("has-error").removeClass('has-success');
 };
 
 function Elems (metrics) {
@@ -565,20 +595,20 @@ Elems.prototype.addElement = function (element) {
     return elem;
 };
 
-Elems.prototype.removeElement = function (el) {
-    // find the element in the items list
+Elems.prototype.remove = function (element) {
     var item = find(compose(eq(el), dot('el')), this.items);
-    if (!item) return;
-    // remove any (in)valid text
-    item.textHolder.remove();
-    // make sure everything in nod considers the field valid
-    item.checks = [function() {return true;}];
-    item.$el.trigger('change');
-    item.group.removeClass('has-success');
+    if (item) this.disposeItem(item);
+};
+
+Elems.prototype.dispose = function () {
+    each(this.disposeItem.bind(this), this.items);
+};
+
+Elems.prototype.disposeItem = function (item) {
+    item.dispose();
     // remove it from the list of items
     var index = findIndex(item, this.items);
     if (index > -1) this.items.splice(index, 1);
-    return el;
 };
 
 Elems.prototype.expandMetrics = map(function (metric) {
@@ -657,15 +687,22 @@ function nod (metrics, options) {
 
     function removeElement (el) {
         el = $(el);
-        el.each(function () { elems.removeElement(this); });
+        el.each(function () { elems.remove(this); });
         el.off();
+    }
+
+    function dispose () {
+        elems.dispose();
+        submit.dispose();
+        form.dispose();
     }
 
     return {
         add         : addElement,
         remove      : removeElement,
         checkers    : checkers,
-        allValid    : elems.allAreValid.bind(elems)
+        allValid    : elems.allAreValid.bind(elems),
+        dispose     : dispose
     };
 
 }

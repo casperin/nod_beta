@@ -1,14 +1,20 @@
 function SubmitButton (elems, selector) {
-    var btn = $(selector);
+    var btn = $(selector),
+        $els = [];
 
     function listenTo ($el) {
-        $el.on('toggle:isValid', toggleBtn);
+        $els.push( $el.on('toggle:isValid', toggleBtn) );
     }
 
     function toggleBtn () {
         var errors = !elems.allAreValid();
         //log(errors);
         btn.prop('disabled', errors).toggleClass('disabled', errors);
+    }
+
+    function dispose () {
+        each(function ($el) { $el.off('toggle:isValid'); }, $els);
+        btn.prop('disabled', false).toggleClass('disabled', false);
     }
 
     // Listen to each element and enable/disable submit button
@@ -18,6 +24,7 @@ function SubmitButton (elems, selector) {
     toggleBtn();
 
     return {
-        add: listenTo
+        add: listenTo,
+        dispose: dispose
     };
 }

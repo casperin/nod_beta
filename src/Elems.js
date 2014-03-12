@@ -30,20 +30,20 @@ Elems.prototype.addElement = function (element) {
     return elem;
 };
 
-Elems.prototype.removeElement = function (el) {
-    // find the element in the items list
+Elems.prototype.remove = function (element) {
     var item = find(compose(eq(el), dot('el')), this.items);
-    if (!item) return;
-    // remove any (in)valid text
-    item.textHolder.remove();
-    // make sure everything in nod considers the field valid
-    item.checks = [function() {return true;}];
-    item.$el.trigger('change');
-    item.group.removeClass('has-success');
+    if (item) this.disposeItem(item);
+};
+
+Elems.prototype.dispose = function () {
+    each(this.disposeItem.bind(this), this.items);
+};
+
+Elems.prototype.disposeItem = function (item) {
+    item.dispose();
     // remove it from the list of items
     var index = findIndex(item, this.items);
     if (index > -1) this.items.splice(index, 1);
-    return el;
 };
 
 Elems.prototype.expandMetrics = map(function (metric) {

@@ -18,15 +18,22 @@ function nod (metrics, options) {
 
     function removeElement (el) {
         el = $(el);
-        el.each(function () { elems.removeElement(this); });
+        el.each(function () { elems.remove(this); });
         el.off();
+    }
+
+    function dispose () {
+        elems.dispose();
+        submit.dispose();
+        form.dispose();
     }
 
     return {
         add         : addElement,
         remove      : removeElement,
         checkers    : checkers,
-        allValid    : elems.allAreValid.bind(elems)
+        allValid    : elems.allAreValid.bind(elems),
+        dispose     : dispose
     };
 
 }
