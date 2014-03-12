@@ -389,6 +389,16 @@ function SubmitButton (elems, selector) {
     };
 }
 
+function Form (elems, form) {
+    $(form).on('submit', function (event) {
+        if(!elems.allAreValid()) {
+            event.preventDefault();
+            elems.firstInputWithError().trigger('change').focus();
+        }
+    });
+}
+
+
 function Elem (element) {
 
     this.el = element;
@@ -619,9 +629,12 @@ Elems.prototype.attachChecker = function (expandedMetric, item) {
 };
 
 
-// untested
 Elems.prototype.allAreValid = function () {
     return all(compose(eq(true), dot('isValid')), this.items);
+};
+
+Elems.prototype.firstInputWithError = function () {
+    return find(compose(neq(true), dot('isValid')), this.items).$el;
 };
 
 // Main function called by user
@@ -630,6 +643,8 @@ function nod (metrics, options) {
     var elems = new Elems(metrics);
 
     var submit = SubmitButton(elems, options.submitBtn);
+
+    var form = Form(elems, options.form);
 
     function addElement (el) {
         $(el).each(function () {

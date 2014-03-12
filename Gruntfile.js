@@ -4,6 +4,7 @@ var src = [
     //'src/config.js',
     'src/checker.js',
     'src/submitButton.js',
+    'src/form.js',
     //'src/listener.js',
     'src/Elem.js',
     'src/Elems.js',

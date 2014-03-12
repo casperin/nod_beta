@@ -94,7 +94,10 @@ Elems.prototype.attachChecker = function (expandedMetric, item) {
 };
 
 
-// untested
 Elems.prototype.allAreValid = function () {
     return all(compose(eq(true), dot('isValid')), this.items);
+};
+
+Elems.prototype.firstInputWithError = function () {
+    return find(compose(neq(true), dot('isValid')), this.items).$el;
 };

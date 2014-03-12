@@ -5,6 +5,8 @@ function nod (metrics, options) {
 
     var submit = SubmitButton(elems, options.submitBtn);
 
+    var form = Form(elems, options.form);
+
     function addElement (el) {
         $(el).each(function () {
             var item = elems.add.call(elems, this);
