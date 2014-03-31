@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>nod.js example</title>
+        <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+        <script src="https://code.jquery.com/jquery-2.1.0.min.js"></script>
+        <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+        <script src="../build/nod.min.js"></script>
+    </head>
+    <body>
+
+        <div class="container">
+            <h1>nod.js Example - 2</h1>
+            <p>If you need to check for multiple things, then you can just add them as a list. Notice that it needs to have mutiple error texts as well then (but only a single valid text)</p>
+            <hr>
+            <form class="form-horizontal">
+
+                <div class="form-group">
+                    <label for="foo" class="col-sm-2 control-label">Some label</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="foo" placeholder="Type something...">
+                        <span class="help-block">Must be present and an integer</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <button type="submit" class="btn btn-default">Submit</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <script>
+            var myValidates = [{
+                    selector: "#foo",
+                    validate: ["presence", "integer"],
+                    validText: "Great!",
+                    errorText: ["Don't leave this empty", "It must be a number"]
+                }],
+
+                myConfig = {
+                    submitBtn: ".btn"
+                },
+
+                myNod = nod(myValidates, myConfig);
+        </script>
+    </body>
+</html>
