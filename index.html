@@ -1,0 +1,143 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>Testing nod</title>
+        <style>
+            label {
+                display: block;
+                padding: 1em;
+            }
+            .nod-error {
+                background: pink;
+            }
+            .nod-error-extra {
+                background: red;
+            }
+            .nod-success {
+                background: #dfa;
+            }
+        </style>
+    </head>
+    <body>
+
+
+        <form action='' class='form'>
+            <label class='yo-label'>
+                <span>Yo</span>
+                <input type='text' class='input password' autofocus>
+            </label>
+
+            <label class='yo-label'>
+                <span>Yo</span>
+                <input type='text' class='input input2 password2'>
+            </label>
+
+            <label class='yo-label'>
+                <span>Yo</span>
+                <input type='text' class='input'>
+            </label>
+
+            <label class='yo-label'>
+                <input type='checkbox' class='checkbox'>
+                <span>Check this!</span>
+            </label>
+
+            <label class='yo-label'>
+                <span>Select the one</span>
+                <select class='select'>
+                    <option value=''>Pick one</option>
+                    <option value='big'>Big</option>
+                    <option value='small'>Small</option>
+                </select>
+            </label>
+
+            <button type='submit' class='submit'>Submit</button>
+        </form>
+
+        <script src='nod.js'></script>
+        <script>
+            var n = nod();
+
+            n.configure({
+                submit: '.submit',
+                //disableSubmit: true,
+                preventSubmit: true,
+                //tap: console.log.bind(console, 'tap'),
+                //errorClass: 'nod-error-extra',
+                delay: 1,
+                successMessage: 'Yay!'
+            });
+
+            //n.configuration.preventSubmit = true;
+
+            n.addForm('.form');
+
+            n.add([
+                /*
+                {
+                    selector: '.input',
+                    validate: 'only-one-of',
+                    errorMessage: 'one of'
+                },
+                */
+                {
+                    selector: '.password',
+                    validate: 'min-length:3',
+                    errorMessage: 'min length'
+                },
+                {
+                    selector: '.password2',
+                    //validate: 'same-as:.password',
+                    validate: 'presence',
+                    triggeredBy: '.password',
+                    errorMessage: 'Must be the same password yo'
+                },
+                /*
+                {
+                    selector: '.checkbox',
+                    validate: 'checked',
+                    errorMessage: 'Gotta check this out!'
+                },
+                */
+                /*
+                {
+                    selector: '.input',
+                    validate: 'min-length:2',
+                    errorMessage: 'No good!'
+                },
+                {
+                    selector: '.input',
+                    validate: function (cb, v) { return cb(v % 2 === 0); },
+                    errorMessage: 'Hello reg!'
+                },
+                {
+                    selector: '.input',
+                    validate: 'max-length:3',
+                    errorMessage: 'too long'
+                },
+                {
+                    selector: '.input2',
+                    validate: 'not:yoo',
+                    errorMessage: 'not yoo'
+                },
+                {
+                    selector: '.password, .password2',
+                    validate: 'only-one-of',
+                    errorMessage: 'one offff'
+                },
+                {
+                    selector: '.password2',
+                    validate: 'max-length:2',
+                    errorMessage: 'too long'
+                }
+                {
+                    selector: '.select',
+                    validate: 'presence',
+                    errorMessage: 'Think big!'
+                }
+                */
+            ]);
+        </script>
+    </body>
+</html>
