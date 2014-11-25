@@ -81,9 +81,21 @@
             function trigger (el, eventName) {
                 var customEvent = new CustomEvent(eventName);
                 el.dispatchEvent(customEvent);
-
-                return customEvent;
             }
+
+            // For ie 9 and 10
+            (function () {
+              function CustomEvent ( event, params ) {
+                params = params || { bubbles: false, cancelable: false, detail: undefined };
+                var evt = document.createEvent( 'CustomEvent' );
+                evt.initCustomEvent( event, params.bubbles, params.cancelable, params.detail );
+                return evt;
+               };
+
+              CustomEvent.prototype = window.Event.prototype;
+
+              window.CustomEvent = CustomEvent;
+            })();
 
             var ERROR_MSG = 'some error message';
         </script>
@@ -479,6 +491,7 @@
                 }]);
 
                 var ha = get('ha'),
+                    hb = get('hb'),
                     hc = get('hc'),
                     hd = get('hd'),
                     he = get('he'),
@@ -493,7 +506,8 @@
                     hn = get('hn'),
                     ho = get('ho'),
                     hp = get('hp'),
-                    hq = get('hq');
+                    hq = get('hq'),
+                    hr = get('hr');
 
                 setValue(ha, 'foo');
                 expect(isValid(ha), 'Check - `presence`');
